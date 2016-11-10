@@ -1,17 +1,13 @@
-package marttoslo.evolution;
+package marttoslo.heuristics.evolution;
 
 import java.util.ArrayList;
 
 public abstract class AbstractGenotype implements Comparable<AbstractGenotype> {
 	private double fitness;
 	
-	public abstract void BuildRandom(double lower, double upper, double geneMutationChance);
+	public abstract void BuildRandom();
 	
-	public abstract void BuildGenotype(IPhenotype phenotype);
-	
-	public abstract void BuildGenotype(ArrayList<Double> genes);
-	
-	public abstract IPhenotype BuildPhenotype();
+	public abstract double Evaluate();
 	
 	public abstract void Serialize(String filename);
 	

@@ -24,8 +24,8 @@ public class HeuristicEvaluator implements IStateEvaluator {
 	public boolean positional = false;
 	
 	public enum ParameterName {
-		healMultiplier,
-		spreadMultiplier,
+		//healMultiplier,
+		//spreadMultiplier,
 		
 		upMaxHpFactor,
 		downMaxHpFactor,
@@ -96,8 +96,8 @@ public class HeuristicEvaluator implements IStateEvaluator {
 	
 	public void SetDefaultParameters() {
 		// Parameters
-		Parameters.put(ParameterName.healMultiplier, 150.0);
-		Parameters.put(ParameterName.spreadMultiplier, 50.0);
+		//Parameters.put(ParameterName.healMultiplier, 150.0);
+		//Parameters.put(ParameterName.spreadMultiplier, 50.0);
 
 		Parameters.put(ParameterName.upMaxHpFactor, 2.0);
 		Parameters.put(ParameterName.downMaxHpFactor, 1.0);
@@ -448,7 +448,8 @@ public class HeuristicEvaluator implements IStateEvaluator {
 
 	@Override
 	public String title() {
-		return "Heuristic Evaluator [positional=" + positional + ", heal="+Parameters.get(ParameterName.healMultiplier)+", spread="+Parameters.get(ParameterName.spreadMultiplier)+"]";
+		//return "Heuristic Evaluator [positional=" + positional + ", heal="+Parameters.get(ParameterName.healMultiplier)+", spread="+Parameters.get(ParameterName.spreadMultiplier)+"]";
+		return "Heuristic Evaluator [positional=" + positional + "]";
 	}
 
 	@Override

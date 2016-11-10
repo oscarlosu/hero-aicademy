@@ -1,4 +1,4 @@
-package marttoslo.evolution;
+package marttoslo.heuristics.evolution;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -81,7 +81,7 @@ public class ArtificialEvolution {
 		population = new ArrayList<AbstractGenotype>();
 		for(int i = 0; i < populationSize; ++i) {
 			AbstractGenotype genotype = genotypeFactory.Build();
-			genotype.BuildRandom(initMutationFactorLowerBound, initMutationFactorUpperBound, initGeneMutationChance);
+			genotype.BuildRandom();
 			population.add(genotype);
 		}
 	}
@@ -92,8 +92,7 @@ public class ArtificialEvolution {
 		for(int i = 0; i < population.size(); ++i) {
 			// Evaluate individual
 			AbstractGenotype genotype = population.get(i);
-			IPhenotype phenotype = genotype.BuildPhenotype();
-			double fitness = phenotype.Evaluate();
+			double fitness = genotype.Evaluate();
 			genotype.setFitness(fitness);
 			// Accumulate population fitness for stats
 			avgFitness += fitness;

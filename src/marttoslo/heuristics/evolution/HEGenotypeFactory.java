@@ -1,4 +1,4 @@
-package marttoslo.evolution;
+package marttoslo.heuristics.evolution;
 
 public class HEGenotypeFactory implements IGenotypeFactory {
 	@Override
