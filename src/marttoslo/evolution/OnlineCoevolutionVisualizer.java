@@ -54,7 +54,6 @@ public class OnlineCoevolutionVisualizer extends JComponent implements KeyListen
 	}
 	
 	public void update(){
-
 		rendering = true;
 		points.clear();
 		
@@ -84,6 +83,7 @@ public class OnlineCoevolutionVisualizer extends JComponent implements KeyListen
 				if (!control){
 					repaint();
 					ui.repaint();
+					//System.out.println("generation " + gen);
 					Thread.sleep(5);
 				}
 			}

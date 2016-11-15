@@ -141,7 +141,7 @@ public class OnlineCoevolution implements AI, AiVisualizor {
 			clone.imitate(state);
 			child.crossover(p1, p2, clone);
 			// Mutation
-			if (Math.random() < mutRate) {
+			if (random.nextFloat() < mutRate) {
 				clone.imitate(state);
 				child.mutate(clone);
 			}
@@ -160,7 +160,7 @@ public class OnlineCoevolution implements AI, AiVisualizor {
 		}
 		// Evaluate
 		GameState clone = new GameState(state.map);
-		
+		boolean hostIsPlayer1;
 		for(Genome host : hostPopulation) {
 			for(int i = 0; i < evalSubPopSize; ++i) {
 				// Select random parasite
@@ -168,12 +168,13 @@ public class OnlineCoevolution implements AI, AiVisualizor {
 				Genome parasite = parasitePopulation.get(index);
 				// Make copy of game state for simulation
 				clone.imitate(state);
+				hostIsPlayer1 = clone.p1Turn;
 				// Play host turn and then parasite turn
 				clone.update(host.actions);
 				clone.update(parasite.actions);
 				// Evaluate
-				double hostScore = evaluator.eval(clone, true);
-				double parasiteScore = evaluator.eval(clone, false);
+				double hostScore = evaluator.eval(clone, hostIsPlayer1);
+				double parasiteScore = evaluator.eval(clone, !hostIsPlayer1);
 				
 				host.value += hostScore;
 				host.visits++;
@@ -185,7 +186,7 @@ public class OnlineCoevolution implements AI, AiVisualizor {
 		Collections.sort(hostPopulation);
 		for(int i = 0; i < hostPopulation.size(); ++i) {
 			Genome g = hostPopulation.get(i);
-			System.out.println(i + " value " + g.value + " visits " + g.visits + " fitness " + g.fitness());
+			//System.out.println(i + " value " + g.value + " visits " + g.visits + " fitness " + g.fitness());
 		}
 		// Sort parasites descending
 		Collections.sort(parasitePopulation);		

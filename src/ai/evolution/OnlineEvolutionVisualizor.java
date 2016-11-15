@@ -59,7 +59,6 @@ public class OnlineEvolutionVisualizor extends JComponent implements KeyListener
 	}
 	
 	public void update(){
-
 		rendering = true;
 		points.clear();
 		
