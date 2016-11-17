@@ -1,0 +1,31 @@
+{
+  "name": "Selector",
+  "children": [
+    {
+      "name": "Selector",
+      "children": [
+        {
+          "name": "Sequence",
+          "children": []
+        },
+        {
+          "name": "Attack"
+        },
+        {
+          "name": "Attack2"
+        }
+      ]
+    },
+    {
+      "name": "Sequence",
+      "children": [
+        {
+          "name": "Attack3"
+        },
+        {
+          "name": "Attack4"
+        }
+      ]
+    }
+  ]
+}
