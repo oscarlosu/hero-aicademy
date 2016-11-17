@@ -1,6 +1,6 @@
 package marttoslo.behaviourTree.nodes;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 
 import marttoslo.behaviourTree.Node;
 import marttoslo.behaviourTree.NodeState;
@@ -11,8 +11,8 @@ public class Inverter extends Node {
 		
 	}
 	@Override
-	public NodeState Process() {
-		if(children.get(0).Process() == NodeState.SUCCESS) {
+	public NodeState Process(HashMap<String, Object> context) {
+		if(children.get(0).Process(context) == NodeState.SUCCESS) {
 			return NodeState.FAILURE;
 		} else {
 			return NodeState.SUCCESS;

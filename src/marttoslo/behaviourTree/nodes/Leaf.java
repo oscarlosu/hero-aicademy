@@ -1,5 +1,7 @@
 package marttoslo.behaviourTree.nodes;
 
+import java.util.HashMap;
+
 import marttoslo.behaviourTree.BehaviourTreeController;
 import marttoslo.behaviourTree.Node;
 import marttoslo.behaviourTree.NodeState;
@@ -15,7 +17,7 @@ public class Leaf extends Node {
 	}
 
 	@Override
-	public NodeState Process() {
+	public NodeState Process(HashMap<String, Object> context) {
 		// TODO Auto-generated method stub
 		return null;
 	}

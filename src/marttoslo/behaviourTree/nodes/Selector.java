@@ -1,6 +1,7 @@
 package marttoslo.behaviourTree.nodes;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import marttoslo.behaviourTree.Node;
 import marttoslo.behaviourTree.NodeState;
@@ -11,9 +12,9 @@ public class Selector extends Node {
 	public Selector() {
 	}
 	@Override
-	public NodeState Process() {
+	public NodeState Process(HashMap<String, Object> context) {
 		for(int i = 0; i < children.size(); ++i) {
-			if(children.get(i).Process() == NodeState.SUCCESS) {
+			if(children.get(i).Process(context) == NodeState.SUCCESS) {
 				return NodeState.SUCCESS;
 			}
 		}

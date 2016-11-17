@@ -11,22 +11,39 @@ import java.util.HashMap;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 
-/*
- * Allows a human player to play the game using the arrow key of the keyboard.
- */
+import action.Action;
+import game.GameState;
+
+
 public class BehaviourTreeController
 {
 	public enum Script {
-		Attack
+		EquipOffense,
+		EquipDefence
 	}
 	
 	private HashMap<Script, Node> trees;
+	private HashMap<String, Object> context;
+	
     private static final String TREE_FOLDER = "Trees";
-    private static final String PACKAGE_NAME = "behaviourTree.nodes.";
+    private static final String PACKAGE_NAME = "marttoslo.behaviourTree.nodes.implementations.";
     
     public BehaviourTreeController()
     {
     	trees = new HashMap<Script, Node>();
+    	context = new HashMap<String, Object>();
+    	LoadTrees();
+    }
+    
+    public ArrayList<Action> GetActions(Script behaviour, GameState state) {
+    	context.put("gameState", state);
+    	context.put("actions", new ArrayList<Action>());
+    	if (trees.containsKey(behaviour)) {
+    		trees.get(behaviour).Process(context);
+    		return (ArrayList<Action>) context.get("actions");
+    	}
+    	else 
+    		return null;
     }
     
     public void LoadTrees() {
@@ -60,15 +77,6 @@ public class BehaviourTreeController
     	return root;
     }
     
-    /**
-     * Handle an Object. Consume the first token which is BEGIN_OBJECT. Within
-     * the Object there could be array or non array tokens. We write handler
-     * methods for both. Noe the peek() method. It is used to find out the type
-     * of the next token without actually consuming it.
-     *
-     * @param reader
-     * @throws IOException
-     */
     private Node handleObject(JsonReader reader) throws IOException
     {
     	Node newNode = null;
@@ -90,13 +98,6 @@ public class BehaviourTreeController
         return newNode;
     }
  
-    /**
-     * Handle a json array. The first token would be JsonToken.BEGIN_ARRAY.
-     * Arrays may contain objects or primitives.
-     *
-     * @param reader
-     * @throws IOException
-     */
     private ArrayList<Node> GetChildren(JsonReader reader) throws IOException
     {
     	ArrayList<Node> children = new ArrayList<>();
@@ -118,13 +119,6 @@ public class BehaviourTreeController
         return children;
     }
  
-    /**
-     * Handle non array non object tokens
-     *
-     * @param reader
-     * @param token
-     * @throws IOException
-     */
     private Node handleNonArrayToken(JsonReader reader, JsonToken token) throws IOException
     {
         if (token.equals(JsonToken.NAME)) {
