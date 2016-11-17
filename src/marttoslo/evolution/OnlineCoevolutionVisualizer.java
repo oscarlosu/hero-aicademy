@@ -12,6 +12,7 @@ import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 
+import action.Action;
 import ai.evolution.OnlineEvolution;
 import ui.UI;
 
@@ -78,25 +79,30 @@ public class OnlineCoevolutionVisualizer extends JComponent implements KeyListen
 				synchronized (this) {
 					points.add(new Point(x,y));
 				}
-				if (rolling.bestActions.size() > gen)
-					ui.setActionLayer(rolling.bestActions.get(gen));
+				if (rolling.bestHostActions.size() > gen)
+				{
+					List<Action> bestHost = rolling.bestHostActions.get(gen);
+					List<Action> bestParasite = rolling.bestParasiteActions.get(gen);
+					ui.setActionLayer(bestHost, bestParasite);
+				}
+					
 				if (!control){
 					repaint();
 					ui.repaint();
-					//System.out.println("generation " + gen);
-					Thread.sleep(5);
+					//Thread.sleep(5);
 				}
 			}
 
 			repaint();
 			ui.repaint();
-			Thread.sleep(20);
+			Thread.sleep(20);			
 			
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
 
-		ui.actionLayer.clear();
+		ui.actionLayerP1.clear();
+		ui.actionLayerP2.clear();
 		rendering = false;
 		
 	}

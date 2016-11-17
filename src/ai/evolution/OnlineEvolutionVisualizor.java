@@ -88,7 +88,7 @@ public class OnlineEvolutionVisualizor extends JComponent implements KeyListener
 				if (!control){
 					repaint();
 					ui.repaint();
-					Thread.sleep(5);
+					//Thread.sleep(5);
 				}
 			}
 
@@ -100,7 +100,8 @@ public class OnlineEvolutionVisualizor extends JComponent implements KeyListener
 			e.printStackTrace();
 		}
 
-		ui.actionLayer.clear();
+		ui.actionLayerP1.clear();
+		ui.actionLayerP2.clear();
 		rendering = false;
 		
 	}

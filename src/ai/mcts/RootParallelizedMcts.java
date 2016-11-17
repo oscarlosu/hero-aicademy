@@ -91,7 +91,7 @@ public class RootParallelizedMcts implements AI {
 		System.out.println("Processors: " + processors);
 		this.executor = Executors.newFixedThreadPool(processors);
 		for(int i=0; i < processors; i++) {
-			MctsThread thread = new MctsThread(new Mcts(budget, defaultPolicy.copy()), new GameState(null));
+			MctsThread thread = new MctsThread(new Mcts(budget, defaultPolicy.copy(), false), new GameState(null));
 			thread.mcts.cut = cut;
 			thread.mcts.cut = collapse;
 			thread.mcts.c = c;

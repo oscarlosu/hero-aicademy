@@ -126,18 +126,18 @@ public class GameArguments {
 					players[p] = new GreedyTurnAI(new HeuristicEvaluator(false), budget);
 				}
 				if (args[a].toLowerCase().equals("mcts-vanilla")) {
-					players[p] = new Mcts(budget, new RolloutEvaluator(1, 1, new RandomHeuristicAI(0.5), new HeuristicEvaluator(true)));
+					players[p] = new Mcts(budget, new RolloutEvaluator(1, 1, new RandomHeuristicAI(0.5), new HeuristicEvaluator(true)), false);
 				}
 				if (args[a].toLowerCase().equals("mcts-ne")) {
-					players[p] = new Mcts(budget, new RolloutEvaluator(1, 1, new RandomHeuristicAI(1), new HeuristicEvaluator(true)));
+					players[p] = new Mcts(budget, new RolloutEvaluator(1, 1, new RandomHeuristicAI(1), new HeuristicEvaluator(true)), false);
 					((Mcts)players[p]).c = 0;
 				}
 				if (args[a].toLowerCase().equals("mcts-cut")) {
-					players[p] = new Mcts(budget, new RolloutEvaluator(1, 1, new RandomHeuristicAI(.5), new HeuristicEvaluator(true)));
+					players[p] = new Mcts(budget, new RolloutEvaluator(1, 1, new RandomHeuristicAI(.5), new HeuristicEvaluator(true)), false);
 					((Mcts)players[p]).cut = true;
 				}
 				if (args[a].toLowerCase().equals("mcts-collapse")) {
-					players[p] = new Mcts(budget, new RolloutEvaluator(1, 1, new RandomHeuristicAI(0), new HeuristicEvaluator(true)));
+					players[p] = new Mcts(budget, new RolloutEvaluator(1, 1, new RandomHeuristicAI(0), new HeuristicEvaluator(true)), false);
 					((Mcts)players[p]).collapse = true;
 				}
 				if (args[a].toLowerCase().equals("online-evolution")){

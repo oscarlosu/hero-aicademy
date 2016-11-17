@@ -32,6 +32,16 @@ public abstract class Genome implements Comparable<Genome> {
 		value = 0;
 		visits = 0;
 	}
+	
+	public Genome(Random rng) {
+		super();
+		pruner = new ActionPruner();
+		comparator = new ComplexActionComparator();
+		actions = new ArrayList<Action>();
+		random = rng;
+		value = 0;
+		visits = 0;
+	}
 
 	public void random(GameState state) {
 		final List<Action> possible = new ArrayList<Action>();
@@ -47,12 +57,12 @@ public abstract class Genome implements Comparable<Genome> {
 				break;
 			}
 			/*
-			if (random.nextFloat() <= 0.2){
+			if (random.nextDouble() <= 0.2){
 				comparator.state = state;
 				Collections.sort(possible, comparator);
 				actions.add(possible.get(0));
 			} else {*/
-				final int idx = (int) (Math.random() * possible.size());
+				final int idx = (int) (random.nextDouble() * possible.size());
 				actions.add(possible.get(idx));
 				state.update(possible.get(idx));
 			//}
@@ -136,13 +146,13 @@ public abstract class Genome implements Comparable<Genome> {
 		if (possibleActions.isEmpty())
 			return SingletonAction.endTurnAction;
 		/*
-		if (random.nextFloat() <= 0.4){
+		if (random.nextDouble() <= 0.4){
 			comparator.state = state;
 			Collections.sort(possibleActions, comparator);
 			return possibleActions.get(0);
 		}
 		*/
-		final int idx = (int) (Math.random() * possibleActions.size());
+		final int idx = (int) (random.nextDouble() * possibleActions.size());
 
 		return possibleActions.get(idx);
 	}

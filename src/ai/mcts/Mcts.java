@@ -10,6 +10,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
+import java.util.Scanner;
 
 import util.Statistics;
 import action.Action;
@@ -53,7 +55,9 @@ public class Mcts implements AI {
 
 	public boolean useTrans;
 	
-	public Mcts(long budget, IStateEvaluator defaultPolicy) {
+	private boolean stepped;
+	
+	public Mcts(long budget, IStateEvaluator defaultPolicy, boolean stepped) {
 		this.budget = budget;
 		this.defaultPolicy = defaultPolicy;
 		pruner = new ActionPruner();
@@ -73,6 +77,7 @@ public class Mcts implements AI {
 		resetRoot = true;
 		useTrans = true;
 		this.fitnesses = new HashMap<Integer, Double>();
+		this.stepped = stepped;
 	}
 
 	@Override
@@ -159,6 +164,13 @@ public class Mcts implements AI {
 		transTable.clear();
 		ends = 0;
 
+		
+		// Wait for keypress
+		if(stepped) {
+			Scanner s=new Scanner(System.in);
+			s.nextLine();
+		}	
+		
 		return action;
 
 	}
@@ -392,7 +404,7 @@ public class Mcts implements AI {
 
 	@Override
 	public AI copy() {
-		return new Mcts(budget, defaultPolicy.copy());
+		return new Mcts(budget, defaultPolicy.copy(), stepped);
 	}
 
 }

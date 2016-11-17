@@ -23,6 +23,8 @@ public class Game {
 	private Stack<GameState> history;
 	private int lastTurn;
 	
+	private long seed = System.currentTimeMillis();
+	
 	public static void main(String[] args) {
 	
 		GameArguments gameArgs = new GameArguments(args);
@@ -91,11 +93,60 @@ public class Game {
 		
 
 	}
+	
+	public Game(GameState state, GameArguments gameArgs, long seed) {
+		this.seed = seed;
+		this.gameArgs = gameArgs;
+		this.player1 = gameArgs.players[0];
+		this.player2 = gameArgs.players[1];
+		
+		history = new Stack<GameState>();
+		if (state == null)
+			this.state = new GameState(null, seed);
+		else
+			this.state = state;
+
+		// Some speed optimizations
+		synchronized (Game.class) {
+		
+			if (this.state.map == null){
+				try {
+					this.state = new GameState(MapLoader.get(gameArgs.mapName), seed);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			
+			if (SingletonAction.positions == null)
+				SingletonAction.init(this.state.map);
+			
+			if (CachedLines.posMap.isEmpty() || this.state.map != CachedLines.map)
+				CachedLines.load(this.state.map);
+			
+		}
+		
+		String player1Title = player1 == null ? "Human" : player1.title();
+		String player2Title = player2 == null ? "Human" : player2.title();
+		
+		if (gameArgs.gfx){
+			this.ui = new UI(this.state, (this.player1 == null), (this.player2 == null), player1Title, player2Title );
+
+			if (player1 instanceof AiVisualizor)
+				((AiVisualizor)player1).enableVisualization(ui);
+			if (player2 instanceof AiVisualizor)
+				((AiVisualizor)player2).enableVisualization(ui);
+		
+		}
+		
+		history = new Stack<GameState>();
+		
+
+	}
 
 	public void run() {
 		
 		state.init(gameArgs.deckSize);
-		GameState initState = new GameState(state.map);
+		GameState initState = new GameState(state.map, seed);
 		initState.imitate(state);
 		history.add(initState);
 		lastTurn = 5;
@@ -142,7 +193,7 @@ public class Game {
 			
 			if (state.APLeft != lastTurn) {
 				if (state.APLeft < lastTurn){
-					GameState clone = new GameState(state.map);
+					GameState clone = new GameState(state.map, seed);
 					clone.imitate(state);
 					history.add(clone);
 				}
@@ -151,7 +202,7 @@ public class Game {
 
 			if (state.APLeft == 5) {
 				history.clear();
-				GameState clone = new GameState(state.map);
+				GameState clone = new GameState(state.map, seed);
 				clone.imitate(state);
 				history.add(clone);
 				lastTurn = 5;
@@ -165,7 +216,7 @@ public class Game {
 	}
 
 	private void act(AI player, AI other) {
-		GameState clone = new GameState(state.map);
+		GameState clone = new GameState(state.map, seed);
 		clone.imitate(state);
 		if (!GameState.OPEN_HANDS)
 			clone.hideCards(!state.p1Turn);

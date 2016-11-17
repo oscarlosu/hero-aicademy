@@ -6,9 +6,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Scanner;
 
 import action.Action;
+import action.SingletonAction;
 import ai.AI;
+import ai.HeuristicAI;
 import ai.evaluation.IStateEvaluator;
 import ai.evolution.AiVisualizor;
 import ai.evolution.Genome;
@@ -35,12 +38,16 @@ public class OnlineCoevolution implements AI, AiVisualizor {
 	public List<Genome> hostPopulation;
 	public List<Genome> parasitePopulation;
 	public Map<Integer, Double> fitnesses;
-	public List<List<Action>> bestActions;
+	public List<List<Action>> bestHostActions;
+	public List<List<Action>> bestParasiteActions;
 	
 	private OnlineCoevolutionVisualizer visualizer;
-	private final Random random;
+	private Random random;
 	
-	public OnlineCoevolution(int popSize, int evalSubPopSize, double mutRate, int budget, IStateEvaluator evaluator) {
+	private boolean stepped;
+	private long seed = System.currentTimeMillis();
+	
+	public OnlineCoevolution(int popSize, int evalSubPopSize, double mutRate, int budget, IStateEvaluator evaluator, boolean stepped) {
 		super();
 		this.popSize = popSize;
 		this.mutRate = mutRate;
@@ -50,14 +57,25 @@ public class OnlineCoevolution implements AI, AiVisualizor {
 		hostPopulation = new ArrayList<Genome>();
 		parasitePopulation = new ArrayList<Genome>();
 		actions = new ArrayList<Action>();
-		random = new Random();
+		random = new Random(seed);
 		this.generations = new ArrayList<Double>();
 		this.bestVisits = new ArrayList<Double>();
 		this.fitnesses = new HashMap<Integer, Double>();
-		this.bestActions = new ArrayList<List<Action>>();
+		this.bestHostActions = new ArrayList<List<Action>>();
+		this.bestParasiteActions = new ArrayList<List<Action>>();
 //		this.table = new SharedStateTable();
 //		this.newcomers = new ArrayList<Genome>();
 //		this.useHistory = useHistory;
+		this.stepped = stepped;
+	}
+	
+	public void setSeed(long seed) {
+		this.seed = seed;
+		random = new Random(seed);
+	}
+	
+	public long getSeed() {
+		return seed;
 	}
 	
 	@Override
@@ -67,12 +85,19 @@ public class OnlineCoevolution implements AI, AiVisualizor {
 
 	@Override
 	public Action act(GameState state, long ms) {
-		if (actions.isEmpty())
-			search(state);
+		if (actions.isEmpty()) {
+			search(state);			
+			// Wait for keypress
+			if(stepped) {
+				Scanner s=new Scanner(System.in);
+				s.nextLine();
+			}		
+		}
+			
 
 		//table.clear();
 		final Action next = actions.get(0);
-		actions.remove(0);
+		actions.remove(0);		
 		return next;
 	}
 	
@@ -80,22 +105,34 @@ public class OnlineCoevolution implements AI, AiVisualizor {
 		Long start = System.currentTimeMillis();
 		
 		fitnesses.clear();
-		bestActions.clear();
+		bestHostActions.clear();
+		bestParasiteActions.clear();
 		
-		initPopulation(hostPopulation, state);
-		initPopulation(parasitePopulation, state);
+		GameState clone = new GameState(state.map);
+		clone.imitate(state);
+		initPopulation(hostPopulation, clone);
+		// Simulate turn with heuristic AI before initializing parasites
+		clone.imitate(state);
+		AI standInPlayer = new HeuristicAI();
+		List<Action> simActions = new ArrayList<Action>();
+		for(int i = 0; i < clone.APLeft; ++i) {
+			simActions.add(standInPlayer.act(clone, 0));
+		}
+		simActions.add(SingletonAction.endTurnAction);
+		clone.update(simActions);
+		initPopulation(parasitePopulation, clone);
 		
 		List<Genome> killedHosts = new ArrayList<Genome>();
 		List<Genome> killedParasites = new ArrayList<Genome>();
-		GameState clone = new GameState(state.map);
-		clone.imitate(state);
+		
+		
 		
 		int g = 0;
-		
+		clone.imitate(state);
 		while (System.currentTimeMillis() < start + budget) {
 
 			g++;
-			
+			clone.imitate(state);
 			// Test population
 			evaluateAndSort(clone);
 
@@ -104,11 +141,13 @@ public class OnlineCoevolution implements AI, AiVisualizor {
 			// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 			// This will produce invalid moves
 			// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+			clone.update(hostPopulation.get(0).actions);
 			reproduce(clone, parasitePopulation); 
 			
 			// TODO: Only if needed?!
 			fitnesses.put(g, hostPopulation.get(0).fitness());
-			bestActions.add(clone(hostPopulation.get(0).actions));
+			bestHostActions.add(clone(hostPopulation.get(0).actions));
+			bestParasiteActions.add(clone(parasitePopulation.get(0).actions));
 			
 		}
 		
@@ -173,7 +212,7 @@ public class OnlineCoevolution implements AI, AiVisualizor {
 				clone.update(host.actions);
 				clone.update(parasite.actions);
 				// Evaluate
-				double hostScore = evaluator.eval(clone, hostIsPlayer1);
+				double hostScore = evaluator.eval(clone, hostIsPlayer1);				
 				double parasiteScore = evaluator.eval(clone, !hostIsPlayer1);
 				
 				host.value += hostScore;
@@ -181,7 +220,8 @@ public class OnlineCoevolution implements AI, AiVisualizor {
 				parasite.value = parasiteScore;
 				parasite.visits++;
 			}
-		}
+		}		
+		
 		// Sort hosts descending
 		Collections.sort(hostPopulation);
 		for(int i = 0; i < hostPopulation.size(); ++i) {
@@ -205,7 +245,7 @@ public class OnlineCoevolution implements AI, AiVisualizor {
 
 		for (int i = 0; i < popSize; i++) {
 			clone.imitate(state);
-			final Genome genome = new AvgGenome();
+			final Genome genome = new AvgGenome(random);
 			genome.random(clone);
 			population.add(genome);
 		}
@@ -220,11 +260,11 @@ public class OnlineCoevolution implements AI, AiVisualizor {
 	@Override
 	public AI copy() {
 		if (visualizer!=null){
-			OnlineCoevolution evo = new OnlineCoevolution(popSize, evalSubPopSize, mutRate, budget, evaluator.copy());
+			OnlineCoevolution evo = new OnlineCoevolution(popSize, evalSubPopSize, mutRate, budget, evaluator.copy(), stepped);
 			return evo;
 		}
 		
-		return new OnlineCoevolution(popSize, evalSubPopSize, mutRate, budget, evaluator.copy());
+		return new OnlineCoevolution(popSize, evalSubPopSize, mutRate, budget, evaluator.copy(), stepped);
 	}
 
 	@Override

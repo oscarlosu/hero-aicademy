@@ -5,6 +5,7 @@ import game.GameState;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 
 import model.Card;
 import model.Position;
@@ -23,6 +24,9 @@ public class RandomAI implements AI {
 	private final List<Action> actions;
 	private final List<Position> positions;
 	private final List<Integer> idxs;
+	
+	private Random random;
+	private long seed = System.currentTimeMillis();
 
 	public RandomAI(RAND_METHOD randMethod) {
 		this.randMethod = randMethod;
@@ -40,6 +44,17 @@ public class RandomAI implements AI {
 			heightOrder.add(y);
 		for (int h = 0; h < 6; h++)
 			handOrder.add(h);
+		
+		random = new Random(seed);
+	}
+	
+	public void setSeed(long seed) {
+		this.seed = seed;
+		random = new Random(seed);
+	}
+	
+	public long getSeed() {
+		return seed;
 	}
 
 	@Override

@@ -1,23 +1,26 @@
 package model;
 
 import java.util.Arrays;
+import java.util.Random;
 
 public class CardSet {
 
 	public int[] cards;
 	public int size;
-	public int seed;
-
+	public int seed = (int) (Math.random() * 1000);
+	private Random rng;
+	
 	public CardSet() {
 		cards = new int[Card.values().length];
 		size = 0;
-		seed = (int) (Math.random() * 1000);
+		rng = new Random(seed);
 	}
 
 	public CardSet(int seed) {
 		cards = new int[Card.values().length];
 		size = 0;
 		this.seed = seed;
+		rng = new Random(seed);
 	}
 
 	public Card determined() {
@@ -29,7 +32,7 @@ public class CardSet {
 	}
 
 	public Card random() {
-		return get((int) Math.floor(Math.random() * size));
+		return get((int) Math.floor(rng.nextDouble() * size));
 	}
 
 	public Card get(Integer r) {

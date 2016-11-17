@@ -50,7 +50,11 @@ public class UI extends JComponent {
 	private final Boolean p2Human;
 	private int turn = 0;
 	
-	public List<Action> actionLayer;
+	private static Color colorP1 = new Color(255, 255, 0, 100);
+	private static Color colorP2 = new Color(255, 255, 255, 100);
+	
+	public List<Action> actionLayerP1;
+	public List<Action> actionLayerP2;
 	public boolean connection;
 
 	public UI(GameState state, boolean p1Human, boolean p2Human, String p1Name, String p2Name) {
@@ -73,7 +77,8 @@ public class UI extends JComponent {
 		this.addMouseMotionListener(inputController);
 		this.state = state;
 		bottom = squareSize + state.map.height * squareSize + squareSize / 4;
-		actionLayer = new ArrayList<Action>();
+		actionLayerP1 = new ArrayList<Action>();
+		actionLayerP2 =  new ArrayList<Action>();
 		repaint();
 	}
 
@@ -118,7 +123,8 @@ public class UI extends JComponent {
 		try {
 			paintBoard(g);
 			paintHeader(g);
-			paintLastUnitAction(g);
+			paintLastUnitAction(g, true);
+			paintLastUnitAction(g, false);
 			paintGameObjects(g);
 			paintHP(g);
 			paintInfo(g);
@@ -131,7 +137,8 @@ public class UI extends JComponent {
 			paintWinScreen(g);
 			paintUnitDetails(g);
 			paintDeck(g);
-			paintActionLayer(g);
+			paintActionLayer(g, false);
+			paintActionLayer(g, true);
 		} catch (final IOException e) {
 			//e.printStackTrace();
 		}
@@ -140,16 +147,26 @@ public class UI extends JComponent {
 	
 	public void setActionLayer(List<Action> actions){
 		synchronized (this) {
-			actionLayer.clear();
-			actionLayer.addAll(actions);
+			actionLayerP1.clear();
+			actionLayerP1.addAll(actions);
+		}
+	}
+	
+	public void setActionLayer(List<Action> p1Actions, List<Action> p2Actions){
+		synchronized (this) {
+			actionLayerP1.clear();
+			actionLayerP2.clear();
+			actionLayerP1.addAll(p1Actions);
+			actionLayerP2.addAll(p2Actions);
 		}
 	}
 
-	private void paintActionLayer(Graphics g) {
+	private void paintActionLayer(Graphics g, boolean p1) {
 		synchronized (this) {
-			for(Action action : actionLayer){
+			List<Action> actions = p1 ? actionLayerP1 : actionLayerP2;
+			for(Action action : actions){
 				if (action instanceof UnitAction)
-					paintUnitAction(g, (UnitAction)action);
+					paintUnitAction(g, (UnitAction)action, p1);
 				else if (action instanceof DropAction)
 					paintDropAction(g, (DropAction)action);
 				else if (action instanceof SwapCardAction)
@@ -266,7 +283,7 @@ public class UI extends JComponent {
 		}
 	}
 
-	private void paintUnitAction(Graphics g, UnitAction ua) {
+	private void paintUnitAction(Graphics g, UnitAction ua, boolean p1) {
 		if (ua instanceof UnitAction) {
 			final Position from = ((UnitAction) ua).from;
 			final Position to = ((UnitAction) ua).to;
@@ -274,14 +291,19 @@ public class UI extends JComponent {
 			final int ovalH = 48;
 			final int rectW = 48;
 			final int rectH = 48;
-			if (((UnitAction) ua).type == UnitActionType.HEAL)
-				g.setColor(new Color(0, 255, 0, 100));
-			else if (((UnitAction) ua).type == UnitActionType.ATTACK)
-				g.setColor(new Color(255, 0, 0, 100));
-			else if (((UnitAction) ua).type == UnitActionType.MOVE)
-				g.setColor(new Color(0, 0, 255, 100));
-			else if (((UnitAction) ua).type == UnitActionType.SWAP)
-				g.setColor(new Color(255, 0, 255, 100));
+			if(p1) {
+				if (((UnitAction) ua).type == UnitActionType.HEAL)
+					g.setColor(new Color(0, 255, 0, 100));
+				else if (((UnitAction) ua).type == UnitActionType.ATTACK)
+					g.setColor(new Color(255, 0, 0, 100));
+				else if (((UnitAction) ua).type == UnitActionType.MOVE)
+					g.setColor(new Color(0, 0, 255, 100));
+				else if (((UnitAction) ua).type == UnitActionType.SWAP)
+					g.setColor(new Color(255, 0, 255, 100));
+			} else {
+				g.setColor(colorP2);
+			}
+			
 			((Graphics2D) g).setStroke(new BasicStroke(4));
 			g.drawLine(squareSize + squareSize * from.x + squareSize / 2,
 					squareSize + squareSize * from.y + squareSize / 2,
@@ -539,12 +561,12 @@ public class UI extends JComponent {
 		
 	}
 
-	private void paintLastUnitAction(Graphics g) {
+	private void paintLastUnitAction(Graphics g, boolean p1) {
 
 		if (lastAction == null || !(lastAction instanceof UnitAction))
 			return;
 
-		paintUnitAction(g, (UnitAction)lastAction);
+		paintUnitAction(g, (UnitAction)lastAction, p1);
 
 	}
 

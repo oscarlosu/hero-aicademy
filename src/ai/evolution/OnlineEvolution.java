@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Scanner;
 
 import ui.UI;
 import action.Action;
@@ -36,11 +37,14 @@ public class OnlineEvolution implements AI, AiVisualizor {
 	public List<Genome> newcomers;
 	
 	private OnlineEvolutionVisualizor visualizor;
-	private final Random random;
+	private Random random;
 	public SharedStateTable table;
 	public boolean useHistory;
 	
-	public OnlineEvolution(boolean useHistory, int popSize, double mutRate, double killRate, int budget, IStateEvaluator evaluator) {
+	private boolean stepped;
+	private long seed = System.currentTimeMillis();
+	
+	public OnlineEvolution(boolean useHistory, int popSize, double mutRate, double killRate, int budget, IStateEvaluator evaluator, boolean stepped) {
 		super();
 		this.popSize = popSize;
 		this.mutRate = mutRate;
@@ -49,7 +53,7 @@ public class OnlineEvolution implements AI, AiVisualizor {
 		this.killRate = killRate;
 		pop = new ArrayList<Genome>();
 		actions = new ArrayList<Action>();
-		random = new Random();
+		random = new Random(seed);
 		this.generations = new ArrayList<Double>();
 		this.bestVisits = new ArrayList<Double>();
 		this.fitnesses = new HashMap<Integer, Double>();
@@ -57,6 +61,17 @@ public class OnlineEvolution implements AI, AiVisualizor {
 		this.table = new SharedStateTable();
 		this.newcomers = new ArrayList<Genome>();
 		this.useHistory = useHistory;
+		
+		this.stepped = stepped;
+	}
+	
+	public void setSeed(long seed) {
+		this.seed = seed;
+		random = new Random(seed);
+	}
+	
+	public long getSeed() {
+		return seed;
 	}
 	
 	public void enableVisualization(UI ui){
@@ -66,8 +81,14 @@ public class OnlineEvolution implements AI, AiVisualizor {
 	@Override
 	public Action act(GameState state, long ms) {
 
-		if (actions.isEmpty())
-			search(state);
+		if (actions.isEmpty()) {
+			search(state);			
+			// Wait for keypress
+			if(stepped) {
+				Scanner s=new Scanner(System.in);
+				s.nextLine();
+			}		
+		}
 
 		table.clear();
 		final Action next = actions.get(0);
@@ -129,7 +150,7 @@ public class OnlineEvolution implements AI, AiVisualizor {
 				killed.get(i).crossover(pop.get(a), pop.get(b), clone);
 
 				// Mutation
-				if (Math.random() < mutRate) {
+				if (random.nextDouble() < mutRate) {
 					clone.imitate(state);
 					killed.get(i).mutate(clone);
 				}
@@ -208,7 +229,7 @@ public class OnlineEvolution implements AI, AiVisualizor {
 
 		for (int i = 0; i < popSize; i++) {
 			clone.imitate(state);
-			final Genome genome = new WeakGenome();
+			final Genome genome = new WeakGenome(random);
 			genome.random(clone);
 			pop.add(genome);
 		}
@@ -241,11 +262,11 @@ public class OnlineEvolution implements AI, AiVisualizor {
 	@Override
 	public AI copy() {
 		if (visualizor!=null){
-			OnlineEvolution evo = new OnlineEvolution(useHistory, popSize, mutRate, killRate, budget, evaluator.copy());
+			OnlineEvolution evo = new OnlineEvolution(useHistory, popSize, mutRate, killRate, budget, evaluator.copy(), stepped);
 			return evo;
 		}
 		
-		return new OnlineEvolution(useHistory, popSize, mutRate, killRate, budget, evaluator.copy());
+		return new OnlineEvolution(useHistory, popSize, mutRate, killRate, budget, evaluator.copy(), stepped);
 		
 	}
 

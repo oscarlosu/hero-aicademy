@@ -28,6 +28,7 @@ public class GameState {
 	
 	public static int TURN_LIMIT = 100;
 	public static boolean RANDOMNESS = false;
+	
 	public static int STARTING_AP = 3;
 	public static int ACTION_POINTS = 5;
 	
@@ -50,6 +51,8 @@ public class GameState {
 	public boolean isTerminal;
 
 	public List<Position> chainTargets;
+	
+	private long seed = System.currentTimeMillis();
 
 	public GameState(HaMap map) {
 		super();
@@ -58,17 +61,36 @@ public class GameState {
 		p1Turn = true;
 		turn = 1;
 		APLeft = STARTING_AP;
-		p1Hand = new CardSet();
-		p2Hand = new CardSet();
-		p1Deck = new CardSet();
-		p2Deck = new CardSet();
+		p1Hand = new CardSet((int)seed);
+		p2Hand = new CardSet((int)seed);
+		p1Deck = new CardSet((int)seed);
+		p2Deck = new CardSet((int)seed);		
 		chainTargets = new ArrayList<Position>();
 		if (map != null)
 			units = new Unit[map.width][map.height];
 		else
 			units = new Unit[0][0];
 	}
-
+	
+	public GameState(HaMap map, long seed) {
+		super();
+		this.seed = seed;
+		isTerminal = false;
+		this.map = map;
+		p1Turn = true;
+		turn = 1;
+		APLeft = STARTING_AP;
+		p1Hand = new CardSet((int)seed);
+		p2Hand = new CardSet((int)seed);
+		p1Deck = new CardSet((int)seed);
+		p2Deck = new CardSet((int)seed);		
+		chainTargets = new ArrayList<Position>();
+		if (map != null)
+			units = new Unit[map.width][map.height];
+		else
+			units = new Unit[0][0];
+	}
+	
 	public GameState(HaMap map, boolean p1Turn, int turn, int APLeft,
 			Unit[][] units, CardSet p1Hand, CardSet p2Hand, CardSet p1Deck,
 			CardSet p2Deck, List<Position> chainTargets, boolean isTerminal) {
@@ -88,10 +110,10 @@ public class GameState {
 	}
 
 	public void init(DECK_SIZE deckSize) {
-		p1Hand = new CardSet();
-		p2Hand = new CardSet();
-		p1Deck = new CardSet();
-		p2Deck = new CardSet();
+		p1Hand = new CardSet((int)seed);
+		p2Hand = new CardSet((int)seed);
+		p1Deck = new CardSet((int)seed);
+		p2Deck = new CardSet((int)seed);
 		shuffleDecks(deckSize);
 		dealCards();
 		for (final Position pos : map.p1Crystals) {
@@ -417,6 +439,176 @@ public class GameState {
 		}
 
 	}
+	
+	// Debug: Same as update but returns true if action was valid
+//	public boolean update(Action action) {
+//
+//		try {
+//			chainTargets.clear();
+//
+//			if (action instanceof EndTurnAction || APLeft <= 0)
+//				endTurn();
+//
+//			if (action instanceof DropAction) {
+//
+//				final DropAction drop = (DropAction) action;
+//
+//				// Not a type in current players hand
+//				if (!currentHand().contains(drop.type))
+//					return false;
+//
+//				// Unit
+//				if (drop.type.type == CardType.UNIT) {
+//
+//					// Not current players deploy square
+//					if (map.squares[drop.to.x][drop.to.y] == SquareType.DEPLOY_1
+//							&& !p1Turn)
+//						return false;
+//					if (map.squares[drop.to.x][drop.to.y] == SquareType.DEPLOY_2
+//							&& p1Turn)
+//						return false;
+//
+//					deploy(drop.type, drop.to);
+//
+//				}
+//
+//				// Equipment
+//				if (drop.type.type == CardType.ITEM) {
+//
+//					// Not a unit square or crystal
+//					if (units[drop.to.x][drop.to.y] == null
+//							|| units[drop.to.x][drop.to.y].unitClass.card == Card.CRYSTAL)
+//						return false;
+//
+//					if (units[drop.to.x][drop.to.y].p1Owner != p1Turn)
+//						return false;
+//
+//					if (drop.type == Card.REVIVE_POTION
+//							&& (units[drop.to.x][drop.to.y].unitClass.card == Card.CRYSTAL || units[drop.to.x][drop.to.y]
+//									.fullHealth()))
+//						return false;
+//
+//					if (drop.type != Card.REVIVE_POTION
+//							&& units[drop.to.x][drop.to.y].hp == 0)
+//						return false;
+//
+//					if (units[drop.to.x][drop.to.y].equipment
+//							.contains(drop.type))
+//						return false;
+//
+//					equip(drop.type, drop.to);
+//
+//				}
+//
+//				// Spell
+//				if (drop.type.type == CardType.SPELL) {
+//					dropInferno(drop.to);
+//					return true;
+//				}
+//					
+//
+//				return false;
+//
+//			}
+//
+//			if (action instanceof UnitAction) {
+//
+//				final UnitAction ua = (UnitAction) action;
+//
+//				if (units[ua.from.x][ua.from.y] == null)
+//					return false;
+//
+//				final Unit unit = units[ua.from.x][ua.from.y];
+//
+//				if (unit == null)
+//					return false;
+//				
+//				if (unit.p1Owner != p1Turn)
+//					return false;
+//
+//				if (unit.hp == 0)
+//					return false;
+//
+//				// Move
+//				if (units[ua.to.x][ua.to.y] == null
+//						|| (unit.p1Owner == units[ua.to.x][ua.to.y].p1Owner
+//								&& units[ua.to.x][ua.to.y].hp == 0 && unit.unitClass.heal == null)
+//						|| (unit.p1Owner != units[ua.to.x][ua.to.y].p1Owner && units[ua.to.x][ua.to.y].hp == 0)) {
+//
+//					if (ua.from.distance(ua.to) > units[ua.from.x][ua.from.y].unitClass.speed)
+//						return false;
+//
+//					if (map.squares[ua.to.x][ua.to.y] == SquareType.DEPLOY_1
+//							&& !unit.p1Owner)
+//						return false;
+//
+//					if (map.squares[ua.to.x][ua.to.y] == SquareType.DEPLOY_2
+//							&& unit.p1Owner)
+//						return false;
+//
+//					move(unit, ua.from, ua.to);
+//					return true;
+//
+//				} else {
+//
+//					final Unit other = units[ua.to.x][ua.to.y];
+//
+//					// Swap and heal
+//					if (unit.p1Owner == other.p1Owner) {
+//						if (unit.unitClass.swap
+//								&& units[ua.to.x][ua.to.y].unitClass.card != Card.CRYSTAL
+//								&& units[ua.to.x][ua.to.y].hp != 0) {
+//							swap(unit, ua.from, other, ua.to);
+//							return true;
+//						}
+//						if (unit.unitClass.heal == null)
+//							return false;
+//						if (ua.from.distance(ua.to) > unit.unitClass.heal.range)
+//							return false;
+//						if (other.fullHealth())
+//							return false;
+//						heal(unit, ua.from, other);
+//						return true;
+//					}
+//
+//					// Attack
+//					final int distance = ua.from.distance(ua.to);
+//					if (unit.unitClass.attack != null
+//							&& distance > unit.unitClass.attack.range)
+//						return false;
+//
+//					if (distance > 1 && losBlocked(p1Turn, ua.from, ua.to))
+//						return false;
+//
+//					if (other == null)
+//						return false;
+//					
+//					attack(unit, ua.from, other, ua.to);
+//					return true;
+//
+//				}
+//			}
+//
+//			if (action instanceof SwapCardAction) {
+//
+//				final Card card = ((SwapCardAction) action).card;
+//
+//				if (currentHand().contains(card)) {
+//
+//					currentDeck().add(card);
+//					currentHand().remove(card);
+//					APLeft--;
+//
+//				}
+//
+//			}
+//		} catch (final Exception e) {
+//			e.printStackTrace();
+//			return false;
+//		}
+//		return false;
+//
+//	}
 
 	/**
 	 * Using the Bresenham-based super-cover line algorithm
