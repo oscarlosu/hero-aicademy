@@ -100,8 +100,7 @@ public class OnlineEvolutionVisualizor extends JComponent implements KeyListener
 			e.printStackTrace();
 		}
 
-		ui.actionLayerP1.clear();
-		ui.actionLayerP2.clear();
+		ui.actionLayer.clear();
 		rendering = false;
 		
 	}

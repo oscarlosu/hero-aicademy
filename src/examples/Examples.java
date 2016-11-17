@@ -42,7 +42,7 @@ public class Examples {
 	private static void humanVsAI() {
 		
 		int budget = 4000; // 4 sec for AI's
-		boolean stepped = true;
+		boolean stepped = false;
 		boolean setSeed = true;
 		long seed = System.currentTimeMillis();
 		
@@ -77,6 +77,8 @@ public class Examples {
 		
 		
 		game.run();
+		
+		System.out.println("Game seed was: " + seed);
 		
 	}
 

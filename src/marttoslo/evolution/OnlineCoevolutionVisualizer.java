@@ -101,8 +101,7 @@ public class OnlineCoevolutionVisualizer extends JComponent implements KeyListen
 			e.printStackTrace();
 		}
 
-		ui.actionLayerP1.clear();
-		ui.actionLayerP2.clear();
+		ui.actionLayer.clear();
 		rendering = false;
 		
 	}
