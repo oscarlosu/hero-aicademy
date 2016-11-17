@@ -36,11 +36,11 @@ public class BehaviourTreeController
     }
     
     public ArrayList<Action> GetActions(Script behaviour, GameState state) {
-    	context.put("gameState", state);
-    	context.put("actions", new ArrayList<Action>());
+    	context.put(ContextKeys.GAMESTATE, state);
+    	context.put(ContextKeys.ACTIONS, new ArrayList<Action>());
     	if (trees.containsKey(behaviour)) {
     		trees.get(behaviour).Process(context);
-    		return (ArrayList<Action>) context.get("actions");
+    		return (ArrayList<Action>) context.get(ContextKeys.ACTIONS);
     	}
     	else 
     		return null;
