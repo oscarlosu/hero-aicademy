@@ -169,6 +169,7 @@ public class Mcts implements AI {
 		if(stepped) {
 			Scanner s=new Scanner(System.in);
 			s.nextLine();
+			s.close();
 		}	
 		
 		return action;

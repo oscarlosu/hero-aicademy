@@ -13,7 +13,6 @@ import javax.swing.JComponent;
 import javax.swing.JFrame;
 
 import action.Action;
-import ai.evolution.OnlineEvolution;
 import ui.UI;
 
 public class OnlineCoevolutionVisualizer extends JComponent implements KeyListener  {

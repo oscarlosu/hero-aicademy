@@ -15,10 +15,6 @@ import ai.HeuristicAI;
 import ai.evaluation.IStateEvaluator;
 import ai.evolution.AiVisualizor;
 import ai.evolution.Genome;
-import ai.evolution.OnlineEvolution;
-import ai.evolution.OnlineEvolutionVisualizor;
-import ai.evolution.SharedStateTable;
-import ai.evolution.WeakGenome;
 import game.GameState;
 import ui.UI;
 
@@ -91,6 +87,7 @@ public class OnlineCoevolution implements AI, AiVisualizor {
 			if(stepped) {
 				Scanner s=new Scanner(System.in);
 				s.nextLine();
+				s.close();
 			}		
 		}
 			
@@ -121,9 +118,6 @@ public class OnlineCoevolution implements AI, AiVisualizor {
 		simActions.add(SingletonAction.endTurnAction);
 		clone.update(simActions);
 		initPopulation(parasitePopulation, clone);
-		
-		List<Genome> killedHosts = new ArrayList<Genome>();
-		List<Genome> killedParasites = new ArrayList<Genome>();
 		
 		
 		
@@ -224,10 +218,10 @@ public class OnlineCoevolution implements AI, AiVisualizor {
 		
 		// Sort hosts descending
 		Collections.sort(hostPopulation);
-		for(int i = 0; i < hostPopulation.size(); ++i) {
-			Genome g = hostPopulation.get(i);
-			//System.out.println(i + " value " + g.value + " visits " + g.visits + " fitness " + g.fitness());
-		}
+//		for(int i = 0; i < hostPopulation.size(); ++i) {
+//			Genome g = hostPopulation.get(i);
+//			System.out.println(i + " value " + g.value + " visits " + g.visits + " fitness " + g.fitness());
+//		}
 		// Sort parasites descending
 		Collections.sort(parasitePopulation);		
 	}
