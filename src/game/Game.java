@@ -157,7 +157,7 @@ public class Game {
 			player2.init(state, -1);
 
 		while (!state.isTerminal) {
-
+			//System.out.println(Thread.currentThread().getName() + " turn " + state.turn);
 			if (ui != null) {
 				ui.state = state.copy();
 				ui.repaint();
@@ -209,6 +209,7 @@ public class Game {
 			}
 
 		}
+		System.out.println(Thread.currentThread().getName() + " ended on turn " + state.turn);
 		if (ui != null) {
 			ui.state = state.copy();
 			ui.repaint();
