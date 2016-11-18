@@ -12,10 +12,10 @@ import game.GameState;
 import model.DECK_SIZE;
 
 public class Experiment implements Runnable {
-	public static int nCores = 4;
+	public static int nCores = 8;
 	public static int budget = 1000; // 4 sec for AI's
 	public static int doneCheckInterval = budget; // main thread checks if done every budget ms
-	public static int gamesToPlay = 4;
+	public static int gamesToPlay = 10;
 	
 	public ExperimentResults results;
 	
@@ -32,6 +32,7 @@ public class Experiment implements Runnable {
 			while(!allThreadsDone(threads)) {			
 				Thread.sleep(doneCheckInterval);				
 			}
+			results.printResults();
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
@@ -64,7 +65,7 @@ public class Experiment implements Runnable {
 			((OnlineCoevolution)p2).setSeed(seed);
 			// Init game
 			GameState.RANDOMNESS = false;
-			GameArguments gameArgs = new GameArguments(true, p1, p2, "a", DECK_SIZE.STANDARD);
+			GameArguments gameArgs = new GameArguments(false, p1, p2, "a", DECK_SIZE.STANDARD);
 			gameArgs.budget = budget;
 			gameArgs.gfx = false;
 			Game game = new Game(null, gameArgs, seed);
@@ -74,6 +75,7 @@ public class Experiment implements Runnable {
 			
 			// Save results
 			saveResults(game.state.getWinner());
+			System.out.println("Thread " + Thread.currentThread().getName() + " completed a game. Winner: " + game.state.getWinner());
 		}
 		System.out.println("Thread " + Thread.currentThread().getName() + " ended.");
 	}
@@ -90,6 +92,6 @@ public class Experiment implements Runnable {
 	}
 	
 	public synchronized boolean isDone() {
-		return (results.draws + results.p1Wins + results.p2Wins) == Experiment.gamesToPlay;
+		return (results.draws + results.p1Wins + results.p2Wins) >= Experiment.gamesToPlay;
 	}
 }
