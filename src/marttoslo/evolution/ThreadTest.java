@@ -18,23 +18,23 @@ public class ThreadTest {
 	public static void main(String[] args) throws InterruptedException, ExecutionException {
 		ExecutorService executor = Executors.newWorkStealingPool();		
 		// Define experiment
-		Callable<Double> task = () -> {
+		Callable<String> task = () -> {
 		    try {
 		        TimeUnit.SECONDS.sleep(1);
-		        return Math.random();
+		        return Thread.currentThread().getName();
 		    }
 		    catch (InterruptedException e) {
 		        throw new IllegalStateException("task interrupted", e);
 		    }
 		};
 		
-		List<Callable<Double>> callables = new ArrayList<Callable<Double>>();
+		List<Callable<String>> callables = new ArrayList<Callable<String>>();
 		for(int i = 0; i < taskCount; ++i) {
 			callables.add(task);
 		}
 
-		List<Future<Double>> futures = executor.invokeAll(callables);
-		for(Future<Double> f : futures) {
+		List<Future<String>> futures = executor.invokeAll(callables);
+		for(Future<String> f : futures) {
 			System.out.println(f.get());
 		}
 		
