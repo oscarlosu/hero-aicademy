@@ -1,5 +1,7 @@
 package marttoslo.evolution;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadMXBean;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -99,7 +101,13 @@ public class OnlineCoevolution implements AI, AiVisualizor {
 	}
 	
 	private void search(GameState state) {
-		Long start = System.currentTimeMillis();
+		ThreadMXBean thx = ManagementFactory.getThreadMXBean();
+		thx.setThreadCpuTimeEnabled(true);
+		double start = thx.getCurrentThreadCpuTime() / 1e6;
+//		long startSystem = System.currentTimeMillis();
+		
+		
+		
 		
 		fitnesses.clear();
 		bestHostActions.clear();
@@ -123,7 +131,7 @@ public class OnlineCoevolution implements AI, AiVisualizor {
 		
 		int g = 0;
 		clone.imitate(state);
-		while (System.currentTimeMillis() < start + budget) {
+		while (thx.getCurrentThreadCpuTime() / 1e6 < start + budget) {
 
 			g++;
 			clone.imitate(state);
@@ -144,6 +152,9 @@ public class OnlineCoevolution implements AI, AiVisualizor {
 			bestParasiteActions.add(clone(parasitePopulation.get(0).actions));
 			
 		}
+		double end = thx.getCurrentThreadCpuTime() / 1e6;
+//		long endSystem = System.currentTimeMillis();
+//		System.out.println(Thread.currentThread().getName() + " RHCA real cpu time: " + (end - start) + " system time: " + (endSystem - startSystem));
 		
 		if (visualizer != null){
 			visualizer.p1 = state.p1Turn;

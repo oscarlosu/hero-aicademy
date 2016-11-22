@@ -2,6 +2,8 @@ package ai.evolution;
 
 import game.GameState;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadMXBean;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -98,8 +100,10 @@ public class OnlineEvolution implements AI, AiVisualizor {
 	}
 
 	public void search(GameState state) {
-
-		Long start = System.currentTimeMillis();
+		ThreadMXBean thx = ManagementFactory.getThreadMXBean();
+		thx.setThreadCpuTimeEnabled(true);
+		double start = thx.getCurrentThreadCpuTime() / 1e6;
+		//long start = System.currentTimeMillis();
 		
 		fitnesses.clear();
 		bestActions.clear();
@@ -112,7 +116,7 @@ public class OnlineEvolution implements AI, AiVisualizor {
 		
 		int g = 0;
 		
-		while (System.currentTimeMillis() < start + budget) {
+		while (thx.getCurrentThreadCpuTime() / 1e6 < start + budget) {
 
 			g++;
 			
@@ -165,6 +169,9 @@ public class OnlineEvolution implements AI, AiVisualizor {
 			bestActions.add(clone(pop.get(0).actions));
 			
 		}
+		
+//		double end = thx.getCurrentThreadCpuTime() / 1e6;
+//		System.out.println(Thread.currentThread().getName() + " Online Evolution real cpu time: " + (end - start));
 
 		//System.out.println("Best Genome: " + pop.get(0).actions);
 		//System.out.println("Visits: " + pop.get(0).visits);

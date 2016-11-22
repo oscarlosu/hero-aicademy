@@ -209,7 +209,7 @@ public class Game {
 			}
 
 		}
-		System.out.println(Thread.currentThread().getName() + " ended on turn " + state.turn);
+		//System.out.println(Thread.currentThread().getName() + " ended on turn " + state.turn);
 		if (ui != null) {
 			ui.state = state.copy();
 			ui.repaint();

@@ -22,7 +22,7 @@ import model.DECK_SIZE;
 
 public class Experiment {
 	public static int budget = 1000; // 4 sec for AI's
-	public static int gamesToPlay = 4;
+	public static int gamesToPlay = 20;
 	
 	public static ExperimentResults results;
 	
@@ -32,34 +32,53 @@ public class Experiment {
 			long startTime = System.currentTimeMillis();
 			
 			ExecutorService executor = Executors.newWorkStealingPool();		
-			// Make list with requested number of tasks
-			List<Callable<ExperimentResults>> callables = new ArrayList<Callable<ExperimentResults>>();
+			// Submit games to executor
+			List<Future<ExperimentResults>> futures = new ArrayList<Future<ExperimentResults>>();
 			for(int i = 0; i < gamesToPlay; ++i) {
-				callables.add(() -> { return runExperiment(); });
+				futures.add(executor.submit(() -> { return runExperiment(); }));
 			}
-			// Submit tasks
-			List<Future<ExperimentResults>> futures = executor.invokeAll(callables);
-			// Wait and output results
 			int p1 = 0;
 			int p2 = 0;
 			int draws = 0;
-			for(Future<ExperimentResults> f : futures) {
-				ExperimentResults r;
-				try {
-					r = f.get();
-					if(r.winnerIndex == 1) p1++;
-					else if(r.winnerIndex == 2) p2++;
-					else if(r.winnerIndex == 0) draws++;
-					else System.out.println("Error. WinnerIndex = " + r.winnerIndex);
-				} catch (ExecutionException e) {
-					e.printStackTrace();
-				}
-				
+			int gamesCompleted = 0;
+			float avgTurns = 0;
+			ExperimentResults r;
+			while(gamesCompleted < gamesToPlay) {
+				long endTime = System.currentTimeMillis();
+				System.out.println("Main thread checking status." + " Elapsed time: " + ((endTime - startTime) / 1000.0f) + "s");
+				for(int i = 0; i < futures.size(); ++i) {					
+					Future<ExperimentResults> f = futures.get(i);
+					if(f.isCancelled()) {
+						// Error in thread
+						endTime = System.currentTimeMillis();
+						System.out.println("Task failed. Submitting new task." + " Elapsed time: " + ((endTime - startTime) / 1000.0f) + "s");
+						futures.set(i, executor.submit(() -> { return runExperiment(); }));
+					} else if(f.isDone()) {
+						// Completed successfully?
+						try {
+							System.out.println("Trying to get Future.");
+							r = f.get();
+							if(r.winnerIndex == 1) p1++;
+							else if(r.winnerIndex == 2) p2++;
+							else if(r.winnerIndex == 0) draws++;
+							gamesCompleted++;
+							avgTurns += r.turns;
+							endTime = System.currentTimeMillis();
+							System.out.println(r.toString());
+						} catch (ExecutionException e) {
+							System.out.println("Exception on Future.get().");
+							e.printStackTrace();
+						}
+					}
+				}				
+				Thread.sleep(5000);
 			}
+			
 			
 			System.out.println("Player 1: " + p1);
 			System.out.println("Player 2: " + p2);
 			System.out.println("Draws: " + draws);
+			System.out.println("Avg turns: " + (avgTurns / (float)gamesCompleted));
 			
 			// Stop executor
 			ConcurrentUtils.stop(executor);
@@ -68,7 +87,7 @@ public class Experiment {
 			
 			
 			long endTime = System.currentTimeMillis();
-			System.out.println("Elapsed time: " + (endTime - startTime));
+			System.out.println("Elapsed time: " + ((endTime - startTime) / 1000.0f) + "s");
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
@@ -97,6 +116,8 @@ public class Experiment {
 			// Save results
 			ExperimentResults results = new ExperimentResults();
 			results.winnerIndex = game.state.getWinner();
+			results.turns = game.state.turn;
+			results.seed = seed;
 			return results;
 	}
 }
