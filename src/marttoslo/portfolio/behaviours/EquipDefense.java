@@ -10,27 +10,34 @@ import model.Card;
 import model.CardSet;
 import model.Unit;
 
-public class EquipOffense extends Behaviour {
+public class EquipDefense extends Behaviour {
 
 	Card[] priotiizedListOfUnits = new Card[] {
 		Card.ARCHER, Card.WIZARD, Card.CLERIC, Card.NINJA, Card.KNIGHT	
 	};
+	private Card[] itemsToEquip = new Card[] {Card.SHINING_HELM, Card.DRAGONSCALE};
 	
 	@Override
 	public ArrayList<Action> GetActions(boolean isPlayer1, GameState gameState) {
 		ArrayList<Action> actions = new ArrayList<Action>();
 		boolean hasSword = false;
 		CardSet hand = null;
+		Card itemToEquip = null;
 		if (isPlayer1)
 			hand = gameState.p1Hand;
 		else 
 			hand = gameState.p2Hand;
-		for (int i : hand.cards) {
-			if (hand.get(i) == Card.RUNEMETAL) {
-				hasSword = true;
-				break;
+		for (Card item : itemsToEquip) {
+			for (int i : hand.cards) {
+				if (hand.get(i) == itemToEquip) {
+					itemToEquip = item;
+					break;
+				}
 			}
+			if (itemToEquip != null)
+				break;
 		}
+		
 		if (!hasSword) 
 			return fallbackBehaviour.GetActions(isPlayer1, gameState);
 
@@ -46,7 +53,7 @@ public class EquipOffense extends Behaviour {
 			}
 			double bestValue = -10000.0;
 			for (Unit u : units) {
-				double evalValue = evaluator.evalEquip(u, Card.RUNEMETAL, gameState);
+				double evalValue = evaluator.evalEquip(u, itemToEquip, gameState);
 				if (evalValue > bestValue) {
 					bestValue = evalValue;
 					theBest = u;
@@ -57,7 +64,7 @@ public class EquipOffense extends Behaviour {
 		if (theBest == null)
 			return fallbackBehaviour.GetActions(isPlayer1, gameState);
 		
-		actions.add(new DropAction(Card.RUNEMETAL, gameState.GetUnitPosition(theBest)));
+		actions.add(new DropAction(itemToEquip, gameState.GetUnitPosition(theBest)));
 		return actions;
 	}
 
