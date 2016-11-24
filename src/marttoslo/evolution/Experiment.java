@@ -18,15 +18,19 @@ import game.Game;
 import game.GameArguments;
 import game.GameState;
 import model.DECK_SIZE;
+import pacman.game.util.IO;
 
 
 public class Experiment {
-	public static int budget = 1000; // 4 sec for AI's
-	public static int gamesToPlay = 10;
+	public static int budget = 4000; // 4 sec for AI's
+	public static int gamesToPlay = 100;
 	
 	public static boolean useThreads = false;
+	public static boolean enableGfx = true;
+	public static boolean saveToFile = true;
 	
 	public static void main(String[] args) {
+		GameState.RANDOMNESS = true;
 		if(useThreads) {
 			threadedExperiment();
 		} else {
@@ -35,10 +39,12 @@ public class Experiment {
 	}
 	
 	public static void sequentialExperiment() {
+		long timestamp = System.currentTimeMillis();
 		int p1 = 0;
 		int p2 = 0;
 		int draws = 0;
 		double avgTurns = 0;
+		ExperimentResultsCollection resCol = new ExperimentResultsCollection();
 		for(int i = 0; i <  gamesToPlay; ++i) {
 			ExperimentResults r = runExperiment();
 			if(r.winnerIndex == 0) draws++;
@@ -46,6 +52,7 @@ public class Experiment {
 			else if(r.winnerIndex == 2) p2++;
 			
 			avgTurns += r.turns;
+			resCol.collection.add(r);
 		}
 		
 		System.out.println("Player 1: " + p1);
@@ -54,10 +61,13 @@ public class Experiment {
 		System.out.println("Avg turns: " + (avgTurns / (double)gamesToPlay));
 		
 		System.out.println("Done!");
+		
+		if(saveToFile) {
+			resCol.SaveToFile("results_" + timestamp + ".json");
+		}
 	}
 	
 	public static void threadedExperiment() {
-		GameState.RANDOMNESS = false;
 		try {
 			long startTime = System.currentTimeMillis();
 			
@@ -137,7 +147,7 @@ public class Experiment {
 			// Init game			
 			GameArguments gameArgs = new GameArguments(false, p1, p2, "a", DECK_SIZE.STANDARD);
 			gameArgs.budget = budget;
-			gameArgs.gfx = false;
+			gameArgs.gfx = enableGfx;
 			Game game = new Game(null, gameArgs, seed);
 			
 			// Run game
