@@ -186,6 +186,15 @@ public class HeuristicEvaluator implements IStateEvaluator {
 
 	}
 
+	public double evalEquip(Unit unit, Card equipment, GameState state) {
+		boolean up = (unit.hp > 0);
+		Position position = state.GetUnitPosition(unit);
+		double value = unit.hp + unit.unitClass.maxHP * (up ? Parameters.get(ParameterName.upMaxHpFactor) : Parameters.get(ParameterName.downMaxHpFactor))
+				+ equipmentValue(unit, equipment) * (up ? Parameters.get(ParameterName.upEquipmentFactor) : Parameters.get(ParameterName.downEquipmentFactor))
+				+ squareVal(state.map.squares[position.x][position.y], unit.unitClass.card) * (up ? Parameters.get(ParameterName.upSquareFactor): Parameters.get(ParameterName.downSquareFactor));
+		return value;
+	}
+
 	private void findHealers(GameState state) {
 		p1Healers.clear();
 		p2Healers.clear();
@@ -301,6 +310,56 @@ public class HeuristicEvaluator implements IStateEvaluator {
 			c+=8;
 		
 		return c;
+	}
+	
+	private double equipmentValue(Unit unit, Card item) {
+		double val = 0;
+		if (item == Card.DRAGONSCALE){
+			if (unit.unitClass.card == Card.ARCHER)
+				val += Parameters.get(ParameterName.dragonscaleArcherValue);
+			else if (unit.unitClass.card == Card.CLERIC)
+				val += Parameters.get(ParameterName.dragonscaleKnightValue);
+			else if (unit.unitClass.card == Card.KNIGHT)
+				val += Parameters.get(ParameterName.dragonscaleKnightValue);
+			else if(unit.unitClass.card == Card.NINJA)
+				val += Parameters.get(ParameterName.dragonscaleNinjaValue);
+			else if(unit.unitClass.card == Card.WIZARD)
+				val += Parameters.get(ParameterName.dragonscaleWizardValue);				
+		} else if (item == Card.RUNEMETAL){
+			if (unit.unitClass.card == Card.ARCHER)
+				val += Parameters.get(ParameterName.runemetalArcherValue);
+			else if (unit.unitClass.card == Card.CLERIC)
+				val += Parameters.get(ParameterName.runemetalClericValue);
+			else if (unit.unitClass.card == Card.KNIGHT)
+				val += Parameters.get(ParameterName.runemetalKnightValue);
+			else if(unit.unitClass.card == Card.NINJA)
+				val += Parameters.get(ParameterName.runemetalNinjaValue);
+			else if(unit.unitClass.card == Card.WIZARD)
+				val += Parameters.get(ParameterName.runemetalWizardValue);				
+		} else if (item == Card.SHINING_HELM){
+			if (unit.unitClass.card == Card.ARCHER)
+				val += Parameters.get(ParameterName.shiningHelmetArcherValue);
+			else if (unit.unitClass.card == Card.CLERIC)
+				val += Parameters.get(ParameterName.shiningHelmetClericValue);
+			else if (unit.unitClass.card == Card.KNIGHT)
+				val += Parameters.get(ParameterName.shiningHelmetKnightValue);
+			else if(unit.unitClass.card == Card.NINJA)
+				val += Parameters.get(ParameterName.shiningHelmetNinjaValue);
+			else if(unit.unitClass.card == Card.WIZARD)
+				val += Parameters.get(ParameterName.shiningHelmetWizardValue);	
+		} else if (item == Card.SCROLL){
+			if (unit.unitClass.card == Card.ARCHER)
+				val += Parameters.get(ParameterName.scrollArcherValue);
+			else if (unit.unitClass.card == Card.CLERIC)
+				val += Parameters.get(ParameterName.scrollClericValue);
+			else if (unit.unitClass.card == Card.KNIGHT)
+				val += Parameters.get(ParameterName.scrollKnightValue);
+			else if(unit.unitClass.card == Card.NINJA)
+				val += Parameters.get(ParameterName.scrollNinjaValue);
+			else if(unit.unitClass.card == Card.WIZARD)
+				val += Parameters.get(ParameterName.scrollWizardValue);	
+		}
+		return val;
 	}
 
 	private double equipmentValue(Unit unit) {

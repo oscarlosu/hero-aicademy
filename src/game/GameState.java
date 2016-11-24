@@ -1298,5 +1298,40 @@ public class GameState {
 			p2Hand.clear();
 		}
 	}
+	
+	public ArrayList<Unit> GetAllUnitsOfType(boolean p1Units, Card... types) {
+		ArrayList<Unit> returnValues = new ArrayList<Unit>();
+		for (int x = 0; x < map.width; x++)
+			for (int y = 0; y < map.height; y++)
+				if (units[x][y] != null
+						&& units[x][y].p1Owner == p1Units
+						&& units[x][y].hp > 0
+						&& Arrays.asList(types).contains(units[x][y].unitClass.card))
+					returnValues.add(units[x][y]);
+		return returnValues;
+	}
+	
+	
+	public ArrayList<Unit> GetAllUnits(boolean p1Units) {
+		ArrayList<Unit> returnValues = new ArrayList<Unit>();
+		for (int x = 0; x < map.width; x++)
+			for (int y = 0; y < map.height; y++)
+				if (units[x][y] != null
+						&& units[x][y].p1Owner == p1Units
+						&& units[x][y].hp > 0
+						&& units[x][y].unitClass.card != Card.CRYSTAL)
+					returnValues.add(units[x][y]);
+		return returnValues;
+	}
+	
+	public Position GetUnitPosition(Unit unit) {
+		for (int x = 0; x < map.width; x++)
+			for (int y = 0; y < map.height; y++)
+				if (unitAt(new Position(x, y)) == unit) return new Position(x, y);
+		
+		return null;
+	}
+	
+	
 
 }
