@@ -22,8 +22,8 @@ import pacman.game.util.IO;
 
 
 public class Experiment {
-	public static int budget = 4000; // 4 sec for AI's
-	public static int gamesToPlay = 100;
+	public static int budget = 1000; // 4 sec for AI's
+	public static int gamesToPlay = 1;
 	
 	public static boolean useThreads = false;
 	public static boolean enableGfx = true;
@@ -53,6 +53,8 @@ public class Experiment {
 			
 			avgTurns += r.turns;
 			resCol.collection.add(r);
+			
+			System.out.println("Game ended. Result: " + r.winnerIndex);
 		}
 		
 		System.out.println("Player 1: " + p1);
@@ -164,9 +166,12 @@ public class Experiment {
 			results.co_generations.addAll(((OnlineCoevolution)p2).generations);
 			results.co_sumChampionHostFindGen = ((OnlineCoevolution)p2).sumChampionHostFindGen;
 			results.co_sumChampionParasiteFindGen = ((OnlineCoevolution)p2).sumChampionParasiteFindGen;
+			results.co_championHostFitnesses.addAll(((OnlineCoevolution)p2).championHostFitnesses);
+			results.co_championParasiteFitnesses.addAll(((OnlineCoevolution)p2).championParasiteFitnesses);
 			// Online Evolution stats
 			results.oe_generations.addAll(((OnlineEvolution)p1).generations);
 			results.oe_sumChampionHostFindGen = ((OnlineEvolution)p1).sumChampionFindGen;
+			results.oe_championFitnesses.addAll(((OnlineEvolution)p1).championFitnesses);
 			
 			return results;
 	}

@@ -28,13 +28,19 @@ public class ExperimentResults {
 	@Expose
 	public double co_sumChampionHostFindGen;
 	@Expose
+	public List<Double> co_championHostFitnesses = new ArrayList<Double>();
+	@Expose
 	public double co_sumChampionParasiteFindGen;
+	@Expose
+	public List<Double> co_championParasiteFitnesses = new ArrayList<Double>();
 	
 	// Evolution stats
 	@Expose
 	public List<Double> oe_generations = new ArrayList<Double>();
 	@Expose
 	public double oe_sumChampionHostFindGen;
+	@Expose
+	public List<Double> oe_championFitnesses = new ArrayList<Double>();
 	
 	
 	public String toString() {
