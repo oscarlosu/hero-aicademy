@@ -33,9 +33,17 @@ public class OnlineCoevolution implements AI, AiVisualizor {
 	
 	public List<Action> actions;
 	
+	public double sumChampionHostFindGen;
+	public int championHostFindGen;
+	public Genome championHost;
+	public double sumChampionParasiteFindGen;
+	public int championParasiteFindGen;
+	public Genome championParasite;
+	
 	public List<Genome> hostPopulation;
 	public List<Genome> parasitePopulation;
-	public Map<Integer, Double> fitnesses;
+	public Map<Integer, Double> hostFitnesses;
+	public Map<Integer, Double> parasiteFitnesses;
 	public List<List<Action>> bestHostActions;
 	public List<List<Action>> bestParasiteActions;
 	
@@ -58,7 +66,8 @@ public class OnlineCoevolution implements AI, AiVisualizor {
 		random = new Random(seed);
 		this.generations = new ArrayList<Double>();
 		this.bestVisits = new ArrayList<Double>();
-		this.fitnesses = new HashMap<Integer, Double>();
+		this.hostFitnesses = new HashMap<Integer, Double>();
+		this.parasiteFitnesses = new HashMap<Integer, Double>();
 		this.bestHostActions = new ArrayList<List<Action>>();
 		this.bestParasiteActions = new ArrayList<List<Action>>();
 //		this.table = new SharedStateTable();
@@ -109,7 +118,8 @@ public class OnlineCoevolution implements AI, AiVisualizor {
 		
 		
 		
-		fitnesses.clear();
+		hostFitnesses.clear();
+		parasiteFitnesses.clear();
 		bestHostActions.clear();
 		bestParasiteActions.clear();
 		
@@ -144,12 +154,21 @@ public class OnlineCoevolution implements AI, AiVisualizor {
 			// This will produce invalid moves
 			// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 			clone.update(hostPopulation.get(0).actions);
-			reproduce(clone, parasitePopulation); 
+			reproduce(clone, parasitePopulation);
 			
 			// TODO: Only if needed?!
-			fitnesses.put(g, hostPopulation.get(0).fitness());
+			hostFitnesses.put(g, hostPopulation.get(0).fitness());
+			parasiteFitnesses.put(g, parasitePopulation.get(0).fitness());
 			bestHostActions.add(clone(hostPopulation.get(0).actions));
 			bestParasiteActions.add(clone(parasitePopulation.get(0).actions));
+			if(championHost == null || hostPopulation.get(0) != championHost) {
+				championHost = hostPopulation.get(0);
+				championHostFindGen = g;
+			}
+			if(championParasite == null || parasitePopulation.get(0) != championParasite) {
+				championParasite = parasitePopulation.get(0);
+				championParasiteFindGen = g;
+			}
 			
 		}
 		double end = thx.getCurrentThreadCpuTime() / 1e6;
@@ -172,6 +191,8 @@ public class OnlineCoevolution implements AI, AiVisualizor {
 		
 		generations.add((double)g);
 		bestVisits.add((double)(hostPopulation.get(0).visits));
+		sumChampionHostFindGen += championHostFindGen;
+		sumChampionParasiteFindGen += championParasiteFindGen;
 	}
 
 	private void reproduce(GameState state, List<Genome> sortedPopulation) {
@@ -181,7 +202,7 @@ public class OnlineCoevolution implements AI, AiVisualizor {
 		Genome p2 = sortedPopulation.get(1);
 		for(int i = 2; i < popSize; ++i) {
 			// Crossover
-			Genome child = sortedPopulation.get(i);
+			Genome child = new AvgGenome(random);
 			clone.imitate(state);
 			child.crossover(p1, p2, clone);
 			// Mutation
@@ -189,6 +210,8 @@ public class OnlineCoevolution implements AI, AiVisualizor {
 				clone.imitate(state);
 				child.mutate(clone);
 			}
+			// Replace with new individual
+			sortedPopulation.set(i, child);
 		}
 	}
 	

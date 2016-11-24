@@ -45,6 +45,7 @@ public class Examples {
 		boolean stepped = false;
 		boolean setSeed = true;
 		long seed = System.currentTimeMillis();
+		System.out.println("Game seed is: " + seed);
 		
 		//AI p1 = new OnlineCoevolution(100, 30, 0.3, budget, new HeuristicEvaluator(false));
 		//AI p1 = null;
@@ -70,7 +71,7 @@ public class Examples {
 //		}
 //		AI p2 = new Mcts(budget, new RolloutEvaluator(1, 1, policy, new HeuristicEvaluator(false)), stepped);
 		
-		GameState.RANDOMNESS = !setSeed;
+		GameState.RANDOMNESS = true;
 		GameArguments gameArgs = new GameArguments(true, p1, p2, "a", DECK_SIZE.STANDARD);
 		gameArgs.budget = budget; 
 		Game game = new Game(null, gameArgs, seed);

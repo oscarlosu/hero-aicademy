@@ -62,17 +62,17 @@ public class OnlineCoevolutionVisualizer extends JComponent implements KeyListen
 			double xprog;
 			int x;
 			int y;
-			double min = Collections.min(rolling.fitnesses.values());
-			double max = Collections.max(rolling.fitnesses.values());
+			double min = Collections.min(rolling.hostFitnesses.values());
+			double max = Collections.max(rolling.hostFitnesses.values());
 			double val;
 			List<Integer> keys = new ArrayList<Integer>();
-			keys.addAll(rolling.fitnesses.keySet());
+			keys.addAll(rolling.hostFitnesses.keySet());
 			Collections.sort(keys);
 			
 			for(int gen : keys){
-				xprog =  ((double)gen)/((double)rolling.fitnesses.size());
+				xprog =  ((double)gen)/((double)rolling.hostFitnesses.size());
 				x = (int) (div + (((double)(width-div-div)) * xprog));
-				val = rolling.fitnesses.get(gen);
+				val = rolling.hostFitnesses.get(gen);
 				val = (val - min) / (max -min);
 				y = (int) ((height-div) - val * (height-div-div));
 				synchronized (this) {

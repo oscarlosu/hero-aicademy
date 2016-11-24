@@ -156,8 +156,7 @@ public class Game {
 		if (player2 != null)
 			player2.init(state, -1);
 
-		while (!state.isTerminal) {
-			//System.out.println(Thread.currentThread().getName() + " turn " + state.turn);
+		while (!state.isTerminal) {			
 			if (ui != null) {
 				ui.state = state.copy();
 				ui.repaint();
@@ -206,6 +205,7 @@ public class Game {
 				clone.imitate(state);
 				history.add(clone);
 				lastTurn = 5;
+				System.out.println(Thread.currentThread().getName() + " turn " + state.turn);
 			}
 
 		}

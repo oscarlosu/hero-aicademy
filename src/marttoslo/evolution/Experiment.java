@@ -18,16 +18,56 @@ import game.Game;
 import game.GameArguments;
 import game.GameState;
 import model.DECK_SIZE;
+import pacman.game.util.IO;
 
 
 public class Experiment {
-	public static int budget = 1000; // 4 sec for AI's
-	public static int gamesToPlay = 20;
+	public static int budget = 4000; // 4 sec for AI's
+	public static int gamesToPlay = 100;
 	
-	public static ExperimentResults results;
+	public static boolean useThreads = false;
+	public static boolean enableGfx = true;
+	public static boolean saveToFile = true;
 	
 	public static void main(String[] args) {
-		GameState.RANDOMNESS = false;
+		GameState.RANDOMNESS = true;
+		if(useThreads) {
+			threadedExperiment();
+		} else {
+			sequentialExperiment();
+		}
+	}
+	
+	public static void sequentialExperiment() {
+		long timestamp = System.currentTimeMillis();
+		int p1 = 0;
+		int p2 = 0;
+		int draws = 0;
+		double avgTurns = 0;
+		ExperimentResultsCollection resCol = new ExperimentResultsCollection();
+		for(int i = 0; i <  gamesToPlay; ++i) {
+			ExperimentResults r = runExperiment();
+			if(r.winnerIndex == 0) draws++;
+			else if(r.winnerIndex == 1) p1++;
+			else if(r.winnerIndex == 2) p2++;
+			
+			avgTurns += r.turns;
+			resCol.collection.add(r);
+		}
+		
+		System.out.println("Player 1: " + p1);
+		System.out.println("Player 2: " + p2);
+		System.out.println("Draws: " + draws);
+		System.out.println("Avg turns: " + (avgTurns / (double)gamesToPlay));
+		
+		System.out.println("Done!");
+		
+		if(saveToFile) {
+			resCol.SaveToFile("results_" + timestamp + ".json");
+		}
+	}
+	
+	public static void threadedExperiment() {
 		try {
 			long startTime = System.currentTimeMillis();
 			
@@ -107,7 +147,7 @@ public class Experiment {
 			// Init game			
 			GameArguments gameArgs = new GameArguments(false, p1, p2, "a", DECK_SIZE.STANDARD);
 			gameArgs.budget = budget;
-			gameArgs.gfx = false;
+			gameArgs.gfx = enableGfx;
 			Game game = new Game(null, gameArgs, seed);
 			
 			// Run game
@@ -118,6 +158,16 @@ public class Experiment {
 			results.winnerIndex = game.state.getWinner();
 			results.turns = game.state.turn;
 			results.seed = seed;
+			results.crystalWin = game.state.wasCrystalWin();
+			results.unitWin = results.winnerIndex != 0 && !game.state.wasCrystalWin();
+			// Coevolution stats
+			results.co_generations.addAll(((OnlineCoevolution)p2).generations);
+			results.co_sumChampionHostFindGen = ((OnlineCoevolution)p2).sumChampionHostFindGen;
+			results.co_sumChampionParasiteFindGen = ((OnlineCoevolution)p2).sumChampionParasiteFindGen;
+			// Online Evolution stats
+			results.oe_generations.addAll(((OnlineEvolution)p1).generations);
+			results.oe_sumChampionHostFindGen = ((OnlineEvolution)p1).sumChampionFindGen;
+			
 			return results;
 	}
 }
