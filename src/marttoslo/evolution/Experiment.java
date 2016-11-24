@@ -22,11 +22,41 @@ import model.DECK_SIZE;
 
 public class Experiment {
 	public static int budget = 1000; // 4 sec for AI's
-	public static int gamesToPlay = 20;
+	public static int gamesToPlay = 10;
 	
-	public static ExperimentResults results;
+	public static boolean useThreads = false;
 	
 	public static void main(String[] args) {
+		if(useThreads) {
+			threadedExperiment();
+		} else {
+			sequentialExperiment();
+		}
+	}
+	
+	public static void sequentialExperiment() {
+		int p1 = 0;
+		int p2 = 0;
+		int draws = 0;
+		double avgTurns = 0;
+		for(int i = 0; i <  gamesToPlay; ++i) {
+			ExperimentResults r = runExperiment();
+			if(r.winnerIndex == 0) draws++;
+			else if(r.winnerIndex == 1) p1++;
+			else if(r.winnerIndex == 2) p2++;
+			
+			avgTurns += r.turns;
+		}
+		
+		System.out.println("Player 1: " + p1);
+		System.out.println("Player 2: " + p2);
+		System.out.println("Draws: " + draws);
+		System.out.println("Avg turns: " + (avgTurns / (double)gamesToPlay));
+		
+		System.out.println("Done!");
+	}
+	
+	public static void threadedExperiment() {
 		GameState.RANDOMNESS = false;
 		try {
 			long startTime = System.currentTimeMillis();
@@ -118,6 +148,16 @@ public class Experiment {
 			results.winnerIndex = game.state.getWinner();
 			results.turns = game.state.turn;
 			results.seed = seed;
+			results.crystalWin = game.state.wasCrystalWin();
+			results.unitWin = results.winnerIndex != 0 && !game.state.wasCrystalWin();
+			// Coevolution stats
+			results.co_generations.addAll(((OnlineCoevolution)p2).generations);
+			results.co_sumChampionHostFindGen = ((OnlineCoevolution)p2).sumChampionHostFindGen;
+			results.co_sumChampionParasiteFindGen = ((OnlineCoevolution)p2).sumChampionParasiteFindGen;
+			// Online Evolution stats
+			results.oe_generations.addAll(((OnlineEvolution)p1).generations);
+			results.oe_sumChampionHostFindGen = ((OnlineEvolution)p1).sumChampionFindGen;
+			
 			return results;
 	}
 }

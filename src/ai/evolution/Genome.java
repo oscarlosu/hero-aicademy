@@ -189,7 +189,5 @@ public abstract class Genome implements Comparable<Genome> {
 	public String toString() {
 		return "Genome [value=" + value + ", visits="+ visits + ", fitness=" + fitness() + "]";
 	}
-
-	
 	
 }

@@ -827,6 +827,14 @@ public class GameState {
 
 	}
 
+	public boolean wasCrystalWin() {
+		if (!aliveOnCrystals(1) || !aliveOnCrystals(2)) {
+			return true;
+		} else {
+			return false;
+		}	
+	}
+	
 	private void checkWinOnCrystals(int p) {
 
 		if (!aliveOnCrystals(p))
