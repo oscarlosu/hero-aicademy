@@ -36,9 +36,11 @@ public class OnlineCoevolution implements AI, AiVisualizor {
 	public double sumChampionHostFindGen;
 	public int championHostFindGen;
 	public Genome championHost;
+	public List<Double> championHostFitnesses;
 	public double sumChampionParasiteFindGen;
 	public int championParasiteFindGen;
 	public Genome championParasite;
+	public List<Double> championParasiteFitnesses;
 	
 	public List<Genome> hostPopulation;
 	public List<Genome> parasitePopulation;
@@ -74,6 +76,9 @@ public class OnlineCoevolution implements AI, AiVisualizor {
 //		this.newcomers = new ArrayList<Genome>();
 //		this.useHistory = useHistory;
 		this.stepped = stepped;
+		
+		championHostFitnesses = new ArrayList<Double>();
+		championParasiteFitnesses = new ArrayList<Double>();
 	}
 	
 	public void setSeed(long seed) {
@@ -193,6 +198,8 @@ public class OnlineCoevolution implements AI, AiVisualizor {
 		bestVisits.add((double)(hostPopulation.get(0).visits));
 		sumChampionHostFindGen += championHostFindGen;
 		sumChampionParasiteFindGen += championParasiteFindGen;
+		championHostFitnesses.add(hostPopulation.get(0).fitness());
+		championParasiteFitnesses.add(parasitePopulation.get(0).fitness());
 	}
 
 	private void reproduce(GameState state, List<Genome> sortedPopulation) {

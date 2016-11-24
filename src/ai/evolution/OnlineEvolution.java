@@ -33,6 +33,7 @@ public class OnlineEvolution implements AI, AiVisualizor {
 	public double sumChampionFindGen = 0;
 	public int championFindGen = 0;
 	public Genome champion = null;
+	public List<Double> championFitnesses;
 	
 	public final List<Genome> pop;
 	public Map<Integer, Double> fitnesses;
@@ -69,6 +70,7 @@ public class OnlineEvolution implements AI, AiVisualizor {
 		this.useHistory = useHistory;
 		
 		this.stepped = stepped;
+		championFitnesses = new ArrayList<Double>();
 	}
 	
 	public void setSeed(long seed) {
@@ -202,6 +204,7 @@ public class OnlineEvolution implements AI, AiVisualizor {
 		generations.add((double)g);
 		bestVisits.add((double)(pop.get(0).visits));
 		sumChampionFindGen += championFindGen;
+		championFitnesses.add(pop.get(0).fitness());
 
 	}
 	
