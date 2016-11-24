@@ -2,6 +2,7 @@ package game;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 import model.AttackType;
@@ -53,6 +54,8 @@ public class GameState {
 	public List<Position> chainTargets;
 	
 	private long seed = System.currentTimeMillis();
+	private HashMap<Unit, Position> unitPositions = new HashMap<Unit, Position>();
+	private ArrayList<Unit> unitList = new ArrayList<Unit>();
 
 	public GameState(HaMap map) {
 		super();
@@ -1013,7 +1016,8 @@ public class GameState {
 			APLeft = ACTION_POINTS;
 			turn++;
 		}
-		
+		unitList = new ArrayList<Unit>();
+		unitPositions = new HashMap<Unit, Position>();
 	}
 
 	public void dealCards() {
@@ -1292,38 +1296,40 @@ public class GameState {
 	}
 	
 	public ArrayList<Unit> GetAllUnitsOfType(boolean p1Units, Card... types) {
+		if (unitList.isEmpty())
+			CacheUnits();
 		ArrayList<Unit> returnValues = new ArrayList<Unit>();
-		for (int x = 0; x < map.width; x++)
-			for (int y = 0; y < map.height; y++)
-				if (units[x][y] != null
-						&& units[x][y].p1Owner == p1Units
-						&& units[x][y].hp > 0
-						&& Arrays.asList(types).contains(units[x][y].unitClass.card))
-					returnValues.add(units[x][y]);
+		for (Unit unit : unitList) {
+			if (Arrays.asList(types).contains(unit.unitClass.card) && unit.p1Owner == p1Units) 
+				returnValues.add(unit);
+		}
 		return returnValues;
 	}
 	
 	
 	public ArrayList<Unit> GetAllUnits(boolean p1Units) {
-		ArrayList<Unit> returnValues = new ArrayList<Unit>();
-		for (int x = 0; x < map.width; x++)
-			for (int y = 0; y < map.height; y++)
-				if (units[x][y] != null
-						&& units[x][y].p1Owner == p1Units
-						&& units[x][y].hp > 0
-						&& units[x][y].unitClass.card != Card.CRYSTAL)
-					returnValues.add(units[x][y]);
-		return returnValues;
+		if (unitList.isEmpty())
+			CacheUnits();
+		return unitList;
 	}
 	
 	public Position GetUnitPosition(Unit unit) {
-		for (int x = 0; x < map.width; x++)
-			for (int y = 0; y < map.height; y++)
-				if (unitAt(new Position(x, y)) == unit) return new Position(x, y);
-		
-		return null;
+		if (unitList.isEmpty())
+			CacheUnits();
+		if (unitPositions.containsKey(unit))
+			return unitPositions.get(unit);
+		else 	
+			return null;
 	}
 	
-	
+	private void CacheUnits() {
+		for (int x = 0; x < map.width; x++)
+			for (int y = 0; y < map.height; y++)
+				if (units[x][y] != null) {
+					unitList.add(units[x][y]);
+					Position unitPosition = new Position(x, y);
+					unitPositions.put(units[x][y], unitPosition);
+				}
+	}
 
 }

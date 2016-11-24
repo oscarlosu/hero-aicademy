@@ -11,7 +11,7 @@ import model.Card;
 import model.Position;
 import model.Unit;
 
-public class AttackHealer extends Behaviour {
+public class FocusAttackHealer extends Behaviour {
 
 	
 	@Override
@@ -58,7 +58,7 @@ public class AttackHealer extends Behaviour {
 		Position healerPosition = positions.get(healerAttacked);
 		Position attackerPosition = positions.get(bestAttacker);
 		
-		actions.addAll(BehaviourHelper.GetAttackTargetUntilDeadAndCaptureStrategy(gameState, attackerPosition, healerPosition, gameState.ACTION_POINTS));
+		actions.addAll(BehaviourHelper.GetAttackTargetUntilDeadAndCaptureStrategy(gameState, attackerPosition, healerPosition, gameState.ACTION_POINTS, true));
 		
 		return actions;
 	}
