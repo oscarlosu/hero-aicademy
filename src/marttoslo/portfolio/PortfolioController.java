@@ -1,12 +1,14 @@
 package marttoslo.portfolio;
 
 import java.util.HashMap;
+import java.util.Random;
 
 import action.Action;
 import game.GameState;
 import marttoslo.portfolio.behaviours.*;
+
 public class PortfolioController {
-	public enum BehaviourType {
+	public static enum BehaviourType {
 		EquipDefense,
 		EquipScroll,
 		EquipSword,
@@ -14,22 +16,26 @@ public class PortfolioController {
 		FocusAttackHealer
 	}
 	
-	private HashMap<BehaviourType, Behaviour> behaviours = new HashMap<BehaviourType, Behaviour>();
+	private static boolean initialized;
+	private static HashMap<BehaviourType, Behaviour> behaviours = new HashMap<BehaviourType, Behaviour>();
 	
-	public PortfolioController() {
-		Initialize();
+	public static Action[] GetActions(GameState gameState, boolean isPlayer1, BehaviourType type) {
+		if (!initialized)
+			Initialize();
+		return (Action[])behaviours.get(type).GetActions(isPlayer1, gameState).toArray();
 	}
 	
-	public SmartAction GetAction(GameState gameState, boolean isPlayer1, BehaviourType type) {
-		SmartAction smartAction = new SmartAction((Action[]) behaviours.get(type).GetActions(isPlayer1, gameState).toArray());
-		return smartAction;
+	public static BehaviourType GetRandomBehaviour(Random random) {
+		return BehaviourType.values()[random.nextInt(BehaviourType.values().length-1)];
 	}
 	
-	private void Initialize() {
+	private static void Initialize() {
 		behaviours.put(BehaviourType.EquipDefense, new EquipDefense());
 		behaviours.put(BehaviourType.EquipScroll, new EquipScroll());
 		behaviours.put(BehaviourType.EquipSword, new EquipSword());
 		behaviours.put(BehaviourType.FocusAttackCrystal, new FocusAttackCrystal());
 		behaviours.put(BehaviourType.FocusAttackHealer, new FocusAttackHealer());
+		
+		initialized = true;
 	}
 }

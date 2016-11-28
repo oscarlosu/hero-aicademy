@@ -1,5 +1,12 @@
-/marttoslo/
-/pacman/
+/.DS_Store
+/action/
+/ai/
+/com/
 /examples/
 /game/
-/ai/
+/libs/
+/marttoslo/
+/model/
+/pacman/
+/ui/
+/util/
