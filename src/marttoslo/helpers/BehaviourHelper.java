@@ -2,11 +2,9 @@ package marttoslo.helpers;
 
 import java.util.ArrayList;
 
-import action.Action;
 import action.UnitAction;
 import action.UnitActionType;
 import game.GameState;
-import model.Direction;
 import model.Position;
 import model.Unit;
 
@@ -18,11 +16,11 @@ public class BehaviourHelper {
 	 * @param attacker
 	 * @param defender
 	 * @param actionPointsToSpend	Default to 5
-	 * @return	index 0: How much damage was dealt - index 1: How many action points was spent on attacking - index 2: How many action points was spent in total
+	 * @return	index 0: How much damage was dealt - index 1: How many action points was spent on attacking - index 2: How many action points was spent in total - index 3: 0/1 if unit was killed
 	 */
-	public static int[] CalculateMaxDamage(GameState gameState, Position attackerPosition, Position defenderPosition, int actionPointsToSpend) {
-		Unit attacker = gameState.units[attackerPosition.x][attackerPosition.y];
-		Unit defender = gameState.units[defenderPosition.x][defenderPosition.y];
+	public static int[] CalculateMaxDamage(GameState gameState, Unit attacker, Unit defender, int actionPointsToSpend) {
+		Position attackerPosition = gameState.GetUnitPosition(attacker);
+		Position defenderPosition = gameState.GetUnitPosition(defender);
 		int distanceToAttackRange = attackerPosition.distance(defenderPosition) - attacker.unitClass.attack.range;
 		
 		if (DivideCeil(distanceToAttackRange, attacker.unitClass.speed) >= actionPointsToSpend)
@@ -31,14 +29,47 @@ public class BehaviourHelper {
 		int actionPointsToSpendOnAttacking = actionPointsToSpend - distanceToAttackRange;
 		int actionPointsSpent = 0;
 		int damage = 0;
+		int wasKilled = 0;
 		for (actionPointsSpent = 0; actionPointsSpent < actionPointsToSpendOnAttacking; actionPointsSpent++) {
 			damage += attacker.damage(gameState, attackerPosition, defender, defenderPosition);
 			if (damage > defender.hp) {
 				damage = defender.hp;
+				wasKilled = 1;
 				break;
 			}
 		}
-			return new int[] {damage, actionPointsToSpendOnAttacking - actionPointsSpent, actionPointsSpent};
+		return new int[] {damage, actionPointsToSpendOnAttacking - actionPointsSpent, actionPointsSpent, wasKilled};
+	}
+	
+	/**
+	 * Calculates how much healing can be done with the amount of given action points available
+	 * @param gameState
+	 * @param attacker
+	 * @param defender
+	 * @param actionPointsToSpend	Default to 5
+	 * @return	index 0: How much healing was done - index 1: How many action points was spent on healing - index 2: How many action points was spent in total - Index 3: Revived dead unit
+	 */
+	public static int[] CalculateMaxHealing(GameState gameState, Unit healer, Unit healed, int actionPointsToSpend) {
+		Position healerPosition = gameState.GetUnitPosition(healer);
+		Position healedPosition = gameState.GetUnitPosition(healed);
+		int distanceToAttackRange = healerPosition.distance(healedPosition) - healer.unitClass.attack.range;
+		
+		if (DivideCeil(distanceToAttackRange, healer.unitClass.speed) >= actionPointsToSpend)
+			return new int[] {0, actionPointsToSpend};
+		
+		int actionPointsToSpendOnHealing = actionPointsToSpend - distanceToAttackRange;
+		int actionPointsSpent = 0;
+		int damageHealed = 0;
+		int revived = 0;
+		int initialHp = healed.hp;
+		if (initialHp == 0) revived = 1;
+		for (actionPointsSpent = 0; actionPointsSpent < actionPointsToSpendOnHealing; actionPointsSpent++) {
+			if (healed.unitClass.maxHP - healed.hp > 100) {
+				damageHealed += gameState.GetHealAmount(healer, healed);
+				break;
+			}
+		}
+		return new int[] {damageHealed, actionPointsToSpendOnHealing - actionPointsSpent, actionPointsSpent, revived};
 	}
 	
 	/**
@@ -78,7 +109,7 @@ public class BehaviourHelper {
 			return actions;
 		
 		ArrayList<UnitAction> beforeCapture = new ArrayList<UnitAction>(actions);
-		ArrayList<UnitAction> moveTo = MoveTo(gameState, attacker, currentPosition, defenderPosition, actionPointsToSpend);
+		ArrayList<UnitAction> moveTo = MoveTo(gameState, attacker, defenderPosition, actionPointsToSpend);
 		actionPointsToSpend -= moveTo.size();
 		currentPosition = moveTo.get(moveTo.size()-1).to;
 		actions.addAll(moveTo);
@@ -90,9 +121,9 @@ public class BehaviourHelper {
 			return beforeCapture;
 	}
 	
-	public static ArrayList<UnitAction> MoveTo(GameState gameState, Unit unit, Position from, Position to, int actionPointsToSpend) {
+	public static ArrayList<UnitAction> MoveTo(GameState gameState, Unit unit, Position to, int actionPointsToSpend) {
 		ArrayList<UnitAction> actions = new ArrayList<UnitAction>();
-		Position currentPosition = from;
+		Position currentPosition = gameState.GetUnitPosition(unit);
 		
 		while (currentPosition != to && actionPointsToSpend > 0) {
 			UnitAction newAction = MoveTowardsTarget(gameState, unit, currentPosition, to, currentPosition.distance(to));
@@ -161,6 +192,20 @@ public class BehaviourHelper {
 		return closestUnit;
 	}
 	
+	public static Unit GetClosestUnitToPointUsingSpeed(GameState gameState, ArrayList<Unit> units, Position pos) {
+		int bestMoveCost = Integer.MAX_VALUE;
+		Unit closestUnit = null;
+		for (Unit unit : units) {
+			Position unitPos = gameState.GetUnitPosition(unit);
+			int moveCost = DivideCeil(unitPos.distance(pos), unit.unitClass.speed);
+			if (moveCost < bestMoveCost) {
+				bestMoveCost = moveCost;
+				closestUnit = unit;
+			}
+		}
+		return closestUnit;
+	}
+	
 	public static Position GetClosestPositionToPoint(GameState gameState, ArrayList<Position> positions, Position pos) {
 		int closestDistance = Integer.MAX_VALUE;
 		Position closestPos = null;
@@ -171,5 +216,99 @@ public class BehaviourHelper {
 			}
 		}
 		return closestPos;
+	}
+	
+	
+	/**
+	 * 
+	 * @param gameState
+	 * @param attackers 		List of all potential attacking units
+	 * @param potentialTargets	List of all potential targets for attacking units
+	 * @param prioritizeKills	Should the algorithm prioritize attackers that can kill a unit, over doing most damage?
+	 * @return					index 0: Best attacker (null if 0 damage can be dealt) - Index 1: Target for best attacker
+	 */
+	public static Unit[] CalculateBestAttackOnTargets(GameState gameState, ArrayList<Unit> attackers, ArrayList<Unit> potentialTargets, boolean prioritizeKills) {
+		int bestDamage = 0;
+		int nrOfAPSpent = Integer.MAX_VALUE;
+		boolean didBestKill = false;
+		Unit bestAttacker = null;
+		Unit bestTarget = null;
+		
+		//Priotitizes damage - Would rather spend more action points on using Unit that can deal more damage
+		for (Unit target : potentialTargets) {
+			for (Unit attacker : attackers) {
+				
+				//TODO: Killed in least amount of AP should be prioritized over all others
+				int[] result = BehaviourHelper.CalculateMaxDamage(gameState, attacker, target, gameState.APLeft);
+				if (result[3] == 1 && prioritizeKills) {
+					if (!didBestKill) {
+						bestDamage = result[0];
+						nrOfAPSpent = result[1];
+						bestAttacker = attacker;
+						bestTarget = target;
+						didBestKill = true;
+					}
+					else {
+						if (didBestKill) {
+							if (result[0] > bestDamage) {
+								bestDamage = result[0];
+								nrOfAPSpent = result[1];
+								bestAttacker = attacker;
+								bestTarget = target;
+							}
+							else if (result[0] == bestDamage) {
+								if (result[1] < nrOfAPSpent) {
+									nrOfAPSpent = result[1];
+									bestAttacker = attacker;
+									bestTarget = target;
+								}
+							}
+						}
+					}
+				}				
+				else if (result[0] > bestDamage) {
+					bestDamage = result[0];
+					nrOfAPSpent = result[1];
+					bestAttacker = attacker;
+					bestTarget = target;
+				}
+				else if (result[0] == bestDamage) {
+					if (result[1] < nrOfAPSpent) {
+						nrOfAPSpent = result[1];
+						bestAttacker = attacker;
+						bestTarget = target;
+					}
+				}
+			}
+		}
+		
+		if (bestDamage == 0) {
+			bestAttacker = null;
+			bestTarget = null;
+		}
+		
+		return new Unit[] {bestAttacker, bestTarget};
+	}
+	
+	public static ArrayList<Unit> GetDamagedUnits(GameState gameState, boolean isPlayer1) {
+		ArrayList<Unit> damagedUnits = new ArrayList<Unit>();
+		
+		for (Unit unit : gameState.GetAllUnits(isPlayer1)) {
+			if (unit.hp < unit.unitClass.maxHP)
+				damagedUnits.add(unit);
+		}
+		
+		return damagedUnits;
+	}
+	
+	public static ArrayList<Unit> GetDeadUnits(GameState gameState, boolean isPlayer1) {
+		ArrayList<Unit> deadUnits = new ArrayList<Unit>();
+		
+		for (Unit unit : gameState.GetAllUnits(isPlayer1)) {
+			if (unit.hp == 0)
+				deadUnits.add(unit);
+		}
+		
+		return deadUnits;
 	}
 }

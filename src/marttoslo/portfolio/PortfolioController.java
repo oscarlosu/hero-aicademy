@@ -16,7 +16,10 @@ public class PortfolioController {
 		EquipScroll,
 		EquipSword,
 		FocusAttackCrystal,
-		FocusAttackHealer
+		FocusAttackAndCaptureHealer,
+		FocusAttackDPS,
+		FocusAttackLowHP,
+		CaptureUnit
 	}
 	
 	private static boolean initialized;
@@ -37,7 +40,10 @@ public class PortfolioController {
 		behaviours.put(BehaviourType.EquipScroll, new EquipScroll());
 		behaviours.put(BehaviourType.EquipSword, new EquipSword());
 		behaviours.put(BehaviourType.FocusAttackCrystal, new FocusAttackCrystal());
-		behaviours.put(BehaviourType.FocusAttackHealer, new FocusAttackHealer());
+		behaviours.put(BehaviourType.FocusAttackAndCaptureHealer, new FocusAttackHealer());
+		behaviours.put(BehaviourType.FocusAttackDPS, new FocusAttackDPS());
+		behaviours.put(BehaviourType.FocusAttackLowHP, new FocusAttackLowHP());
+		behaviours.put(BehaviourType.CaptureUnit, new CaptureUnit());
 		
 		initialized = true;
 	}
