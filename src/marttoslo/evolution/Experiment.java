@@ -17,6 +17,7 @@ import ai.evolution.OnlineEvolution;
 import game.Game;
 import game.GameArguments;
 import game.GameState;
+import marttoslo.evolution.portfolio.OnlineCoevolutionPortfolio;
 import marttoslo.evolution.raw.OnlineCoevolution;
 import model.DECK_SIZE;
 import pacman.game.util.IO;
@@ -144,8 +145,8 @@ public class Experiment {
 			AI p1 = new OnlineEvolution(true, 100, 0.1, 0.5, budget, new HeuristicEvaluator(false), false);	
 			((OnlineEvolution)p1).setSeed(seed);
 			// RHCA
-			AI p2 = new OnlineCoevolution(100, 30, 0.3, budget, new HeuristicEvaluator(false), false);
-			((OnlineCoevolution)p2).setSeed(seed);
+			AI p2 = new OnlineCoevolutionPortfolio(100, 30, 0.3, budget, new HeuristicEvaluator(false), false);
+			((OnlineCoevolutionPortfolio)p2).setSeed(seed);
 			
 			// Init game			
 			GameArguments gameArgs = new GameArguments(false, p1, p2, "a", DECK_SIZE.STANDARD);
@@ -164,11 +165,11 @@ public class Experiment {
 			results.crystalWin = game.state.wasCrystalWin();
 			results.unitWin = results.winnerIndex != 0 && !game.state.wasCrystalWin();
 			// Coevolution stats
-			results.co_generations.addAll(((OnlineCoevolution)p2).generations);
-			results.co_sumChampionHostFindGen = ((OnlineCoevolution)p2).sumChampionHostFindGen;
-			results.co_sumChampionParasiteFindGen = ((OnlineCoevolution)p2).sumChampionParasiteFindGen;
-			results.co_championHostFitnesses.addAll(((OnlineCoevolution)p2).championHostFitnesses);
-			results.co_championParasiteFitnesses.addAll(((OnlineCoevolution)p2).championParasiteFitnesses);
+			results.co_generations.addAll(((OnlineCoevolutionPortfolio)p2).generations);
+			results.co_sumChampionHostFindGen = ((OnlineCoevolutionPortfolio)p2).sumChampionHostFindGen;
+			results.co_sumChampionParasiteFindGen = ((OnlineCoevolutionPortfolio)p2).sumChampionParasiteFindGen;
+			results.co_championHostFitnesses.addAll(((OnlineCoevolutionPortfolio)p2).championHostFitnesses);
+			results.co_championParasiteFitnesses.addAll(((OnlineCoevolutionPortfolio)p2).championParasiteFitnesses);
 			// Online Evolution stats
 			results.oe_generations.addAll(((OnlineEvolution)p1).generations);
 			results.oe_sumChampionHostFindGen = ((OnlineEvolution)p1).sumChampionFindGen;

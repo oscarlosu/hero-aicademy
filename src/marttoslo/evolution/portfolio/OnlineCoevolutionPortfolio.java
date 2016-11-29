@@ -168,8 +168,10 @@ public class OnlineCoevolutionPortfolio implements AI, AiVisualizor {
 			// Extract actions from parasite champion's SmartActions
 			clone.imitate(state);
 			List<Action> parasiteActions = new ArrayList<Action>();
+			boolean isPlayer1 = clone.p1Turn;
 			for(int i = 0; i < championParasite.actions.size() && clone.APLeft > 0 && !clone.isTerminal; ++i) {
 				SmartAction sa = championParasite.actions.get(i);
+				sa.InitActions(clone, isPlayer1);
 				for(Action a = sa.Next(clone, clone.p1Turn); sa.HasNext() && clone.APLeft > 0 && !clone.isTerminal; a = sa.Next(clone, clone.p1Turn)) {
 					clone.update(a);
 					parasiteActions.add(a);
