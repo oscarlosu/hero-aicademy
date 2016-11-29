@@ -29,17 +29,12 @@ public class FocusAttackCrystal extends Behaviour {
 		int nrOfAPSpentOnAttack = 0;
 		Unit bestAttacker = null;
 		Unit crystalAttacked = null;
-		HashMap<Unit, Position> positions = new HashMap<Unit, Position>();
 		
 		//Priotitizes damage - Would rather spend more action points on using Unit that can deal more damage
 		for (Unit crystal : crystals) {
-			Position crystalPos = gameState.GetUnitPosition(crystal);
-			positions.put(crystal, crystalPos);
 			for (Unit attacker : friendlyAttackUnits) {
-				Position attackerPos = gameState.GetUnitPosition(attacker);
-				positions.put(crystal, attackerPos);
 				
-				int[] result = BehaviourHelper.CalculateMaxDamage(gameState, attackerPos, crystalPos, gameState.APLeft);
+				int[] result = BehaviourHelper.CalculateMaxDamage(gameState, attacker, crystal, gameState.APLeft);
 				if (result[0] > bestDamage) {
 					bestDamage = result[0];
 					nrOfAPSpent = result[1];
@@ -65,7 +60,7 @@ public class FocusAttackCrystal extends Behaviour {
 		
 		for (Position assPos : assaultSquares) {
 			for (Unit unit : friendlyAttackUnits) {
-				int distance = positions.get(unit).distance(assPos);
+				int distance = gameState.GetUnitPosition(unit).distance(assPos);
 				if (distance < closestDistance && unit != bestAttacker) {
 					closestDistance = distance;
 					chosenAssaultSquare = assPos;
@@ -74,8 +69,8 @@ public class FocusAttackCrystal extends Behaviour {
 			}
 		}
 
-		Position crystalPosition = positions.get(crystalAttacked);
-		Position attackerPosition = positions.get(bestAttacker);
+		Position crystalPosition = gameState.GetUnitPosition(crystalAttacked);
+		Position attackerPosition = gameState.GetUnitPosition(bestAttacker);
 		int actionPointsLeftToAttackAfterMoving = nrOfAPSpentOnAttack - closestDistance;
 
 		//If there's already a unit standing on an assaultSquare or we don't have enough action points to move one there and attack return only attack actions
@@ -89,7 +84,7 @@ public class FocusAttackCrystal extends Behaviour {
 			damageWithAssaultBonus += bestAttacker.damage(gameState, attackerPosition, crystalAttacked, crystalPosition) + 300;
 		}
 		if (damageWithAssaultBonus > bestDamage) {
-			actions.addAll(BehaviourHelper.MoveTo(gameState, closestUnit, attackerPosition, chosenAssaultSquare, gameState.APLeft));
+			actions.addAll(BehaviourHelper.MoveTo(gameState, closestUnit, chosenAssaultSquare, gameState.APLeft));
 		}
 
 		actions.addAll(BehaviourHelper.GetAttackTargetUntilDeadAndCaptureStrategy(gameState, attackerPosition, crystalPosition, gameState.APLeft-actions.size(), false));

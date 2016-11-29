@@ -1347,6 +1347,17 @@ public class GameState {
 			return null;
 	}
 	
+	public int GetHealAmount(Unit healer, Unit healed) {
+		int power = healer.power(this, unitPositions.get(healer));
+
+		if (healed.hp == 0)
+			power *= healer.unitClass.heal.revive;
+		else
+			power *= healer.unitClass.heal.heal;
+		
+		return power;
+	}
+	
 	private void CacheUnits() {
 		for (int x = 0; x < map.width; x++)
 			for (int y = 0; y < map.height; y++)

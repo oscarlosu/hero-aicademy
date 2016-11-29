@@ -11,13 +11,13 @@ import model.Card;
 import model.Position;
 import model.Unit;
 
-public class FocusAttackDPS extends Behaviour {
+public class FocusAttackLowHP extends Behaviour {
 
 	
 	@Override
 	public ArrayList<Action> GetActions(boolean isPlayer1, GameState gameState) {
 		ArrayList<Action> actions = new ArrayList<Action>();
-		ArrayList<Unit> enemyUnits = gameState.GetAllUnits(!isPlayer1);
+		ArrayList<Unit> enemyUnits = BehaviourHelper.GetDamagedUnits(gameState, !isPlayer1);
 		if (enemyUnits.size() == 0) 
 			return fallbackBehaviour.GetActions(isPlayer1, gameState);
 		ArrayList<Unit> friendlyAttackUnits = gameState.GetAllUnitsOfType(isPlayer1, Card.ARCHER, Card.WIZARD, Card.NINJA);
@@ -25,20 +25,6 @@ public class FocusAttackDPS extends Behaviour {
 			return fallbackBehaviour.GetActions(isPlayer1, gameState);
 		
 		//Find the the enemy that I can kill quickest, that has the biggest value
-		ArrayList<Unit> targets = new ArrayList<Unit>();
-		ArrayList<Unit> altTargets = new ArrayList<Unit>();
-		for (Unit unit : enemyUnits) {
-			if (unit.unitClass.card == Card.ARCHER ||unit.unitClass.card == Card.WIZARD || unit.unitClass.card == Card.NINJA) 
-				targets.add(unit);
-			else if (unit.unitClass.card == Card.KNIGHT)
-				altTargets.add(unit);
-		}
-		if (targets.size() == 0) {
-			if (targets.size() == 0)
-				return fallbackBehaviour.GetActions(isPlayer1, gameState);
-			else 
-				targets = altTargets;
-		}
 		
 		Unit[] bestPair = BehaviourHelper.CalculateBestAttackOnTargets(gameState, friendlyAttackUnits, enemyUnits, true);
 		
@@ -48,7 +34,7 @@ public class FocusAttackDPS extends Behaviour {
 		if (bestAttacker == null) {
 			return fallbackBehaviour.GetActions(isPlayer1, gameState);
 		}
-
+		
 		Position targetPosition = gameState.GetUnitPosition(bestTarget);
 		Position attackerPosition = gameState.GetUnitPosition(bestAttacker);
 		
