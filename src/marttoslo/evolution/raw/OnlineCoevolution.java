@@ -1,4 +1,4 @@
-package marttoslo.evolution;
+package marttoslo.evolution.raw;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
@@ -18,6 +18,7 @@ import ai.evaluation.IStateEvaluator;
 import ai.evolution.AiVisualizor;
 import ai.evolution.Genome;
 import game.GameState;
+import marttoslo.evolution.AvgGenome;
 import ui.UI;
 
 public class OnlineCoevolution implements AI, AiVisualizor {

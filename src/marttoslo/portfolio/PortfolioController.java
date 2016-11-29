@@ -1,9 +1,12 @@
 package marttoslo.portfolio;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Random;
 
 import action.Action;
+import ai.util.ActionPruner;
 import game.GameState;
 import marttoslo.portfolio.behaviours.*;
 
@@ -19,14 +22,14 @@ public class PortfolioController {
 	private static boolean initialized;
 	private static HashMap<BehaviourType, Behaviour> behaviours = new HashMap<BehaviourType, Behaviour>();
 	
-	public static Action[] GetActions(GameState gameState, boolean isPlayer1, BehaviourType type) {
+	public static ArrayList<Action> GetActions(GameState gameState, boolean isPlayer1, BehaviourType type) {
 		if (!initialized)
 			Initialize();
-		return (Action[])behaviours.get(type).GetActions(isPlayer1, gameState).toArray();
+		return behaviours.get(type).GetActions(isPlayer1, gameState);
 	}
 	
-	public static BehaviourType GetRandomBehaviour(Random random) {
-		return BehaviourType.values()[random.nextInt(BehaviourType.values().length-1)];
+	public static SmartAction GetRandomSmartAction(Random random) {
+		return new SmartAction(BehaviourType.values()[random.nextInt(BehaviourType.values().length)]);		
 	}
 	
 	private static void Initialize() {

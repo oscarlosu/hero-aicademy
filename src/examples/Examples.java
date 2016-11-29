@@ -14,7 +14,7 @@ import model.DECK_SIZE;
 import game.Game;
 import game.GameArguments;
 import game.GameState;
-import marttoslo.evolution.OnlineCoevolution;
+import marttoslo.evolution.raw.OnlineCoevolution;
 
 public class Examples {
 

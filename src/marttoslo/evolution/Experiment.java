@@ -17,6 +17,7 @@ import ai.evolution.OnlineEvolution;
 import game.Game;
 import game.GameArguments;
 import game.GameState;
+import marttoslo.evolution.raw.OnlineCoevolution;
 import model.DECK_SIZE;
 import pacman.game.util.IO;
 

@@ -1,4 +1,4 @@
-package marttoslo.evolution;
+package marttoslo.evolution.portfolio;
 
 import java.awt.Color;
 import java.awt.Graphics;
@@ -15,7 +15,7 @@ import javax.swing.JFrame;
 import action.Action;
 import ui.UI;
 
-public class OnlineCoevolutionVisualizer extends JComponent implements KeyListener  {
+public class OnlineCoevolutionPortfolioVisualizer extends JComponent implements KeyListener  {
 	static int y = 0;
 	
 	public UI ui;
@@ -28,11 +28,11 @@ public class OnlineCoevolutionVisualizer extends JComponent implements KeyListen
 	
 	private int div;
 
-	private OnlineCoevolution rolling;
+	private OnlineCoevolutionPortfolio rolling;
 	private List<Point> points;
 	private boolean control;
 	
-	public OnlineCoevolutionVisualizer(UI ui, OnlineCoevolution rolling) {
+	public OnlineCoevolutionPortfolioVisualizer(UI ui, OnlineCoevolutionPortfolio rolling) {
 		super();
 		this.ui = ui;
 		this.rolling = rolling;
