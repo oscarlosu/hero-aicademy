@@ -111,6 +111,24 @@ public class GameState {
 		this.isTerminal = isTerminal;
 		
 	}
+	
+	public GameState(HaMap map, boolean p1Turn, int turn, int APLeft,
+			Unit[][] units, CardSet p1Hand, CardSet p2Hand, CardSet p1Deck,
+			CardSet p2Deck, List<Position> chainTargets, boolean isTerminal, HashMap<Unit, Position> cachedPositions) {
+		super();
+		this.map = map;
+		this.p1Turn = p1Turn;
+		this.turn = turn;
+		this.APLeft = APLeft;
+		this.units = units;
+		this.p1Hand = p1Hand;
+		this.p2Hand = p2Hand;
+		this.p1Deck = p1Deck;
+		this.p2Deck = p2Deck;
+		this.chainTargets = chainTargets;
+		this.isTerminal = isTerminal;
+		this.unitPositions = cachedPositions;
+	}
 
 	public void init(DECK_SIZE deckSize) {
 		p1Hand = new CardSet((int)seed);
@@ -1119,7 +1137,7 @@ public class GameState {
 		p2d.imitate(p2Deck);
 
 		return new GameState(map, p1Turn, turn, APLeft, un, p1h, p2h, p1d, p2d,
-				chainTargets, isTerminal);
+				chainTargets, isTerminal, unitPositions);
 	}
 
 	public void imitate(GameState state) {
@@ -1313,7 +1331,6 @@ public class GameState {
 		}
 		return returnValues;
 	}
-	
 	
 	public ArrayList<Unit> GetAllUnits(boolean p1Units) {
 		if (unitList.isEmpty())

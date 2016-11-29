@@ -39,7 +39,7 @@ public class FocusAttackCrystal extends Behaviour {
 				Position attackerPos = gameState.GetUnitPosition(attacker);
 				positions.put(crystal, attackerPos);
 				
-				int[] result = BehaviourHelper.CalculateMaxDamage(gameState, attackerPos, crystalPos, gameState.ACTION_POINTS);
+				int[] result = BehaviourHelper.CalculateMaxDamage(gameState, attackerPos, crystalPos, gameState.APLeft);
 				if (result[0] > bestDamage) {
 					bestDamage = result[0];
 					nrOfAPSpent = result[1];
@@ -80,7 +80,7 @@ public class FocusAttackCrystal extends Behaviour {
 
 		//If there's already a unit standing on an assaultSquare or we don't have enough action points to move one there and attack return only attack actions
 		if (closestDistance == 0 || actionPointsLeftToAttackAfterMoving <= 0) {
-			actions.addAll(BehaviourHelper.GetAttackTargetUntilDeadAndCaptureStrategy(gameState, attackerPosition, crystalPosition, gameState.ACTION_POINTS, false));
+			actions.addAll(BehaviourHelper.GetAttackTargetUntilDeadAndCaptureStrategy(gameState, attackerPosition, crystalPosition, gameState.APLeft, false));
 			return actions;
 		}
 		
@@ -89,10 +89,10 @@ public class FocusAttackCrystal extends Behaviour {
 			damageWithAssaultBonus += bestAttacker.damage(gameState, attackerPosition, crystalAttacked, crystalPosition) + 300;
 		}
 		if (damageWithAssaultBonus > bestDamage) {
-			actions.addAll(BehaviourHelper.MoveTo(gameState, closestUnit, attackerPosition, chosenAssaultSquare, gameState.ACTION_POINTS));
+			actions.addAll(BehaviourHelper.MoveTo(gameState, closestUnit, attackerPosition, chosenAssaultSquare, gameState.APLeft));
 		}
 
-		actions.addAll(BehaviourHelper.GetAttackTargetUntilDeadAndCaptureStrategy(gameState, attackerPosition, crystalPosition, gameState.ACTION_POINTS-actions.size(), false));
+		actions.addAll(BehaviourHelper.GetAttackTargetUntilDeadAndCaptureStrategy(gameState, attackerPosition, crystalPosition, gameState.APLeft-actions.size(), false));
 		
 		return actions;
 	}

@@ -2,11 +2,9 @@ package marttoslo.helpers;
 
 import java.util.ArrayList;
 
-import action.Action;
 import action.UnitAction;
 import action.UnitActionType;
 import game.GameState;
-import model.Direction;
 import model.Position;
 import model.Unit;
 
@@ -18,7 +16,7 @@ public class BehaviourHelper {
 	 * @param attacker
 	 * @param defender
 	 * @param actionPointsToSpend	Default to 5
-	 * @return	index 0: How much damage was dealt - index 1: How many action points was spent on attacking - index 2: How many action points was spent in total
+	 * @return	index 0: How much damage was dealt - index 1: How many action points was spent on attacking - index 2: How many action points was spent in total - index 3: 0/1 if unit was killed
 	 */
 	public static int[] CalculateMaxDamage(GameState gameState, Position attackerPosition, Position defenderPosition, int actionPointsToSpend) {
 		Unit attacker = gameState.units[attackerPosition.x][attackerPosition.y];
@@ -31,14 +29,16 @@ public class BehaviourHelper {
 		int actionPointsToSpendOnAttacking = actionPointsToSpend - distanceToAttackRange;
 		int actionPointsSpent = 0;
 		int damage = 0;
+		int wasKilled = 0;
 		for (actionPointsSpent = 0; actionPointsSpent < actionPointsToSpendOnAttacking; actionPointsSpent++) {
 			damage += attacker.damage(gameState, attackerPosition, defender, defenderPosition);
 			if (damage > defender.hp) {
 				damage = defender.hp;
+				wasKilled = 1;
 				break;
 			}
 		}
-			return new int[] {damage, actionPointsToSpendOnAttacking - actionPointsSpent, actionPointsSpent};
+		return new int[] {damage, actionPointsToSpendOnAttacking - actionPointsSpent, actionPointsSpent, wasKilled};
 	}
 	
 	/**
@@ -171,5 +171,79 @@ public class BehaviourHelper {
 			}
 		}
 		return closestPos;
+	}
+	
+	
+	/**
+	 * 
+	 * @param gameState
+	 * @param attackers 		List of all potential attacking units
+	 * @param potentialTargets	List of all potential targets for attacking units
+	 * @param prioritizeKills	Should the algorithm prioritize attackers that can kill a unit, over doing most damage?
+	 * @return					index 0: Best attacker (null if 0 damage can be dealt) - Index 1: Target for best attacker
+	 */
+	public static Unit[] CalculateBestAttackOnTargets(GameState gameState, ArrayList<Unit> attackers, ArrayList<Unit> potentialTargets, boolean prioritizeKills) {
+		int bestDamage = 0;
+		int nrOfAPSpent = Integer.MAX_VALUE;
+		boolean didBestKill = false;
+		Unit bestAttacker = null;
+		Unit bestTarget = null;
+		
+		//Priotitizes damage - Would rather spend more action points on using Unit that can deal more damage
+		for (Unit target : potentialTargets) {
+			Position targetPos = gameState.GetUnitPosition(target);
+			for (Unit attacker : attackers) {
+				Position attackerPos = gameState.GetUnitPosition(attacker);
+				
+				//TODO: Killed in least amount of AP should be prioritized over all others
+				int[] result = BehaviourHelper.CalculateMaxDamage(gameState, attackerPos, targetPos, gameState.APLeft);
+				if (result[3] == 1 && prioritizeKills) {
+					if (!didBestKill) {
+						bestDamage = result[0];
+						nrOfAPSpent = result[1];
+						bestAttacker = attacker;
+						bestTarget = target;
+						didBestKill = true;
+					}
+					else {
+						if (didBestKill) {
+							if (result[0] > bestDamage) {
+								bestDamage = result[0];
+								nrOfAPSpent = result[1];
+								bestAttacker = attacker;
+								bestTarget = target;
+							}
+							else if (result[0] == bestDamage) {
+								if (result[1] < nrOfAPSpent) {
+									nrOfAPSpent = result[1];
+									bestAttacker = attacker;
+									bestTarget = target;
+								}
+							}
+						}
+					}
+				}				
+				else if (result[0] > bestDamage) {
+					bestDamage = result[0];
+					nrOfAPSpent = result[1];
+					bestAttacker = attacker;
+					bestTarget = target;
+				}
+				else if (result[0] == bestDamage) {
+					if (result[1] < nrOfAPSpent) {
+						nrOfAPSpent = result[1];
+						bestAttacker = attacker;
+						bestTarget = target;
+					}
+				}
+			}
+		}
+		
+		if (bestDamage == 0) {
+			bestAttacker = null;
+			bestTarget = null;
+		}
+		
+		return new Unit[] {bestAttacker, bestTarget};
 	}
 }

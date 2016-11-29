@@ -23,42 +23,21 @@ public class FocusAttackHealer extends Behaviour {
 		ArrayList<Unit> friendlyAttackUnits = gameState.GetAllUnitsOfType(isPlayer1, Card.ARCHER, Card.WIZARD, Card.NINJA);
 		if (friendlyAttackUnits.size() == 0)
 			return fallbackBehaviour.GetActions(isPlayer1, gameState);
-		
-		int bestDamage = 0;
-		int nrOfAPSpent = Integer.MAX_VALUE;
-		Unit bestAttacker = null;
-		Unit healerAttacked = null;
-		HashMap<Unit, Position> positions = new HashMap<Unit, Position>();
-		
+				
 		//Priotitizes damage - Would rather spend more action points on using Unit that can deal more damage
-		for (Unit healer : healers) {
-			Position healerPos = gameState.GetUnitPosition(healer);
-			positions.put(healer, healerPos);
-			for (Unit attacker : friendlyAttackUnits) {
-				Position attackerPos = gameState.GetUnitPosition(attacker);
-				positions.put(healer, attackerPos);
+		Unit[] bestPair = BehaviourHelper.CalculateBestAttackOnTargets(gameState, friendlyAttackUnits, healers, true);
 				
-				int[] result = BehaviourHelper.CalculateMaxDamage(gameState, attackerPos, healerPos, gameState.ACTION_POINTS);
-				if (result[0] > bestDamage) {
-					bestDamage = result[0];
-					nrOfAPSpent = result[1];
-					bestAttacker = attacker;
-					healerAttacked = healer;
-				}
-				else if (result[0] == bestDamage) {
-					if (result[1] < nrOfAPSpent) {
-						nrOfAPSpent = result[1];
-						bestAttacker = attacker;
-						healerAttacked = healer;
-					}
-				}
-			}
-		}
-				
-		Position healerPosition = positions.get(healerAttacked);
-		Position attackerPosition = positions.get(bestAttacker);
+		Unit bestAttacker = bestPair[0];
+		Unit healerAttacked = bestPair[1];
 		
-		actions.addAll(BehaviourHelper.GetAttackTargetUntilDeadAndCaptureStrategy(gameState, attackerPosition, healerPosition, gameState.ACTION_POINTS, true));
+		if (bestAttacker == null) {
+			return fallbackBehaviour.GetActions(isPlayer1, gameState);
+		}
+		
+		Position healerPosition = gameState.GetUnitPosition(healerAttacked);
+		Position attackerPosition = gameState.GetUnitPosition(bestAttacker);
+		
+		actions.addAll(BehaviourHelper.GetAttackTargetUntilDeadAndCaptureStrategy(gameState, attackerPosition, healerPosition, gameState.APLeft, true));
 		
 		return actions;
 	}
