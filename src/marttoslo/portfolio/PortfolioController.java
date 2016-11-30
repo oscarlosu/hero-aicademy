@@ -19,7 +19,8 @@ public class PortfolioController {
 		FocusAttackAndCaptureHealer,
 		FocusAttackDPS,
 		FocusAttackLowHP,
-		CaptureUnit
+		CaptureUnit,
+		HealMostValuable
 	}
 	
 	private static boolean initialized;
@@ -44,6 +45,7 @@ public class PortfolioController {
 		behaviours.put(BehaviourType.FocusAttackDPS, new FocusAttackDPS());
 		behaviours.put(BehaviourType.FocusAttackLowHP, new FocusAttackLowHP());
 		behaviours.put(BehaviourType.CaptureUnit, new CaptureUnit());
+		behaviours.put(BehaviourType.HealMostValuable, new HealMostValuable());
 		
 		initialized = true;
 	}

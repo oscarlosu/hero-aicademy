@@ -64,16 +64,20 @@ public class BehaviourHelper {
 		int initialHp = healed.hp;
 		if (initialHp == 0) revived = 1;
 		for (actionPointsSpent = 0; actionPointsSpent < actionPointsToSpendOnHealing; actionPointsSpent++) {
-			if (healed.unitClass.maxHP - healed.hp > 100) {
-				damageHealed += gameState.GetHealAmount(healer, healed);
+			int healAmount = gameState.GetHealAmount(healer, healed);
+			if (healed.unitClass.maxHP - healed.hp > healAmount) {
+				damageHealed += healAmount;
+			}
+			else {
+				actionPointsSpent--;
 				break;
 			}
 		}
 		return new int[] {damageHealed, actionPointsToSpendOnHealing - actionPointsSpent, actionPointsSpent, revived};
 	}
 	
-	/**
-	 * 
+	/** 
+	 * Tries to calculate a strategy consisting of 0-many chained actions that will kill and capture an enemy unit.
 	 * @param gameState
 	 * @param attackerPosition
 	 * @param defenderPosition
@@ -88,7 +92,7 @@ public class BehaviourHelper {
 		Unit defender = gameState.units[defenderPosition.x][defenderPosition.y];
 		
 		//while not in attack range and have more AP to spend, move towards attack range
-		ArrayList<UnitAction> actionsToRange = MoveUnitToAttackRange(gameState, attacker, defenderPosition, actionPointsToSpend);
+		ArrayList<UnitAction> actionsToRange = MoveUnitToRange(gameState, attacker, defenderPosition, attacker.unitClass.attack.range, actionPointsToSpend);
 		actionPointsToSpend -= actionsToRange.size();
 		actions.addAll(actionsToRange);
 		Position currentPosition = actionsToRange.get(actionsToRange.size()-1).to;
@@ -121,6 +125,53 @@ public class BehaviourHelper {
 			return beforeCapture;
 	}
 	
+	/** 
+	 * Tries to calculate a strategy consisting of 0-many chained actions that will heal a friendly unit back to as close to full health without overhealing
+	 * @param gameState
+	 * @param healerPosition
+	 * @param targetPosition
+	 * @param actionPointsToSpend	How many action points should be used on this strategy
+	 * @return						List of actions that contains moving into heal range, and healing for as many actionpoints as provided
+	 */
+	
+	public static ArrayList<UnitAction> GetHealTargetStrategy(GameState gameState, Position healerPosition, Position targetPosition, int actionPointsToSpend) {
+		ArrayList<UnitAction> actions = new ArrayList<UnitAction>();
+		Unit healer = gameState.units[healerPosition.x][healerPosition.y];
+		Unit target = gameState.units[targetPosition.x][targetPosition.y];
+		
+		//while not in attack range and have more AP to spend, move towards attack range
+		ArrayList<UnitAction> actionsToRange = MoveUnitToRange(gameState, healer, targetPosition, healer.unitClass.heal.range, actionPointsToSpend);
+		actionPointsToSpend -= actionsToRange.size();
+		actions.addAll(actionsToRange);
+		Position currentPosition = actionsToRange.get(actionsToRange.size()-1).to;
+		
+		//Is there action points left to attack unit?
+		if (actionPointsToSpend == 0) 				
+			return actions;
+		
+		int targetHp = target.hp;
+		while (actionPointsToSpend > 0) {
+			int healAmount = gameState.GetHealAmount(healer, target);
+			if (target.unitClass.maxHP - targetHp > healAmount) {
+				actions.add(new UnitAction(currentPosition, targetPosition, UnitActionType.HEAL));
+				actionPointsToSpend--;
+				targetHp += healAmount;
+			}
+			else break;
+		}
+		
+		return actions;
+	}
+	
+	
+	/**
+	 * Returns a series of actions that will move a unit to a position with x amount of actionpoints.
+	 * @param gameState
+	 * @param unit 					Unit to move
+	 * @param to					Where to move unit
+	 * @param actionPointsToSpend	How many action points is the algorithm allowed to spend
+	 * @return
+	 */
 	public static ArrayList<UnitAction> MoveTo(GameState gameState, Unit unit, Position to, int actionPointsToSpend) {
 		ArrayList<UnitAction> actions = new ArrayList<UnitAction>();
 		Position currentPosition = gameState.GetUnitPosition(unit);
@@ -135,35 +186,67 @@ public class BehaviourHelper {
 		return actions;
 	}
 	
+
+	/**
+	 * Moves a unit 1 action toward a target
+	 * @param gameState
+	 * @param movingUnit		Unit to move
+	 * @param from				The current location of the unit to move
+	 * @param towards			Which position to move the unit towards
+	 * @param maxMoveDistance	How far should the unit move
+	 * @return
+	 */
 	public static UnitAction MoveTowardsTarget(GameState gameState, Unit movingUnit, Position from, Position towards, int maxMoveDistance) {
 		ArrayList<Position> availablePositions = getAvailableMovePositions(gameState, movingUnit, from, maxMoveDistance);
 		Position closestPosition = GetClosestPositionToPoint(gameState, availablePositions, towards);
 		return new UnitAction(from, closestPosition, UnitActionType.MOVE);
 	}
 	
-	public static ArrayList<UnitAction> MoveUnitToAttackRange(GameState gameState, Unit moving, Position attackSpot, int actionPointsToSpend) {
+	/**
+	 * Calculates a series of actions that moves a unit just into attack range, but no further
+	 * @param gameState
+	 * @param moving				Unit to move
+	 * @param attackSpot			Spot of unit to attack
+	 * @param actionPointsToSpend	How many action points is the algorithm allowed to use
+	 * @return
+	 */
+	public static ArrayList<UnitAction> MoveUnitToRange(GameState gameState, Unit moving, Position attackSpot, int range, int actionPointsToSpend) {
 		ArrayList<UnitAction> actions = new ArrayList<UnitAction>();
 		Position currentPosition = gameState.GetUnitPosition(moving);
 		
-		while(currentPosition.distance(attackSpot) > moving.unitClass.attack.range && actionPointsToSpend > 0) {
-			int moveDistance = currentPosition.distance(attackSpot) - moving.unitClass.attack.range;
+		while(currentPosition.distance(attackSpot) > range && actionPointsToSpend > 0) {
+			int moveDistance = currentPosition.distance(attackSpot) - range;
 			UnitAction newAction = MoveTowardsTarget(gameState, moving, currentPosition, attackSpot, moveDistance);
 			actions.add(newAction);
 			currentPosition = newAction.to;
 			actionPointsToSpend--;
 		}
 		
-		if (currentPosition.distance(attackSpot) > moving.unitClass.attack.range)
+		if (currentPosition.distance(attackSpot) > range)
 			return actions;
 		else return new ArrayList<UnitAction>();
 		
 		//TODO: Improvements: Do something in case the last move doesn't bring you in LOS of unit you want to attack
 	}
 	
+	/**
+	 * Divides a / b Ints and returns the ceiling value. Used primarily for calculating action point cost of moves.
+	 * @param a
+	 * @param b
+	 * @return
+	 */
 	public static int DivideCeil(int a, int b) {
 		return (int) Math.ceil((double)a / (double)b);
 	}
 	
+	/**
+	 * Calculates the positions a unit can move to within a maximum move distance. Is more efficient than the GameState function, as it only checks inside move range
+	 * @param gameState
+	 * @param movingUnit		Unit to move
+	 * @param unitPosition		Current position of unit to move
+	 * @param maxMoveDistance	How far around the unit should the algorithm check
+	 * @return
+	 */
 	public static ArrayList<Position> getAvailableMovePositions(GameState gameState, Unit movingUnit, Position unitPosition, int maxMoveDistance) {
 		int speed = movingUnit.unitClass.speed - (movingUnit.unitClass.speed - maxMoveDistance);
 		ArrayList<Position> availablePositions = new ArrayList<Position>();
@@ -179,6 +262,13 @@ public class BehaviourHelper {
 		return availablePositions;
 	}
 	
+	/**
+	 * Finds the closest unit among an array of units to a point only factoring distance
+	 * @param gameState
+	 * @param units		Units to test
+	 * @param pos		Position
+	 * @return
+	 */
 	public static Unit GetClosestUnitToPoint(GameState gameState, ArrayList<Unit> units, Position pos) {
 		int closestDistance = Integer.MAX_VALUE;
 		Unit closestUnit = null;
@@ -192,6 +282,13 @@ public class BehaviourHelper {
 		return closestUnit;
 	}
 	
+	/**
+	 * Finds the closest unit among an array of units to a point using movement speed. Least amount of action points used to move = closest
+	 * @param gameState
+	 * @param units			Units to test
+	 * @param pos			Position
+	 * @return
+	 */
 	public static Unit GetClosestUnitToPointUsingSpeed(GameState gameState, ArrayList<Unit> units, Position pos) {
 		int bestMoveCost = Integer.MAX_VALUE;
 		Unit closestUnit = null;
@@ -206,6 +303,13 @@ public class BehaviourHelper {
 		return closestUnit;
 	}
 	
+	/**
+	 * Finds closest position to another position
+	 * @param gameState
+	 * @param positions		List of positions to test
+	 * @param pos			Position to test against
+	 * @return
+	 */
 	public static Position GetClosestPositionToPoint(GameState gameState, ArrayList<Position> positions, Position pos) {
 		int closestDistance = Integer.MAX_VALUE;
 		Position closestPos = null;
@@ -219,8 +323,8 @@ public class BehaviourHelper {
 	}
 	
 	
-	/**
-	 * 
+	/** 
+	 * Calculates from 2 arrays of units, which combination of attacker from the attacker array, and target from the target array, that give the highest damage output.
 	 * @param gameState
 	 * @param attackers 		List of all potential attacking units
 	 * @param potentialTargets	List of all potential targets for attacking units
@@ -290,6 +394,83 @@ public class BehaviourHelper {
 		return new Unit[] {bestAttacker, bestTarget};
 	}
 	
+	/**
+	 * Calculates from 2 arrays of units, which combination of healer from the healer array, and target from the target array, that give the highest healing - Can prioritize reviving units
+	 * @param gameState
+	 * @param healers 			List of all potential healers
+	 * @param potentialTargets	List of all potential targets for healers
+	 * @param prioritizeRevive	Should the algorithm prioritize reviving dead units over maximum healing
+	 * @return					index 0: Best healer (null if 0 healing was done) - Index 1: Target for best healer
+	 */
+	public static Unit[] CalculateBestHealingOnTargets(GameState gameState, ArrayList<Unit> healers, ArrayList<Unit> potentialTargets, boolean prioritizeRevive) {
+		int bestHealing = 0;
+		int nrOfAPSpent = Integer.MAX_VALUE;
+		boolean didBestRevive = false;
+		Unit bestHealer = null;
+		Unit bestTarget = null;
+		
+		//Priotitizes damage - Would rather spend more action points on using Unit that can deal more damage
+		for (Unit target : potentialTargets) {
+			for (Unit healer : healers) {
+				
+				//TODO: Killed in least amount of AP should be prioritized over all others
+				int[] result = BehaviourHelper.CalculateMaxHealing(gameState, healer, target, gameState.APLeft);
+				if (result[3] == 1 && prioritizeRevive) {
+					if (!didBestRevive) {
+						bestHealing = result[0];
+						nrOfAPSpent = result[1];
+						bestHealer = healer;
+						bestTarget = target;
+						didBestRevive = true;
+					}
+					else {
+						if (didBestRevive) {
+							if (result[0] > bestHealing) {
+								bestHealing = result[0];
+								nrOfAPSpent = result[1];
+								bestHealer = healer;
+								bestTarget = target;
+							}
+							else if (result[0] == bestHealing) {
+								if (result[1] < nrOfAPSpent) {
+									nrOfAPSpent = result[1];
+									bestHealer = healer;
+									bestTarget = target;
+								}
+							}
+						}
+					}
+				}				
+				else if (result[0] > bestHealing) {
+					bestHealing = result[0];
+					nrOfAPSpent = result[1];
+					bestHealer = healer;
+					bestTarget = target;
+				}
+				else if (result[0] == bestHealing) {
+					if (result[1] < nrOfAPSpent) {
+						nrOfAPSpent = result[1];
+						bestHealer = healer;
+						bestTarget = target;
+					}
+				}
+			}
+		}
+		
+		if (bestHealing == 0) {
+			bestHealer = null;
+			bestTarget = null;
+		}
+		
+		return new Unit[] {bestHealer, bestTarget};
+	}
+	
+	/**
+	 * Returns all damaged units from a team
+	 * @param gameState
+	 * @param isPlayer1
+	 * @return
+	 */
 	public static ArrayList<Unit> GetDamagedUnits(GameState gameState, boolean isPlayer1) {
 		ArrayList<Unit> damagedUnits = new ArrayList<Unit>();
 		
@@ -301,6 +482,12 @@ public class BehaviourHelper {
 		return damagedUnits;
 	}
 	
+	/**
+	 * Returns all dead units on a team
+	 * @param gameState
+	 * @param isPlayer1
+	 * @return
+	 */
 	public static ArrayList<Unit> GetDeadUnits(GameState gameState, boolean isPlayer1) {
 		ArrayList<Unit> deadUnits = new ArrayList<Unit>();
 		

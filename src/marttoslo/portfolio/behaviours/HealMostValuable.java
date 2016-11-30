@@ -1,10 +1,8 @@
 package marttoslo.portfolio.behaviours;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import action.Action;
-import action.UnitAction;
 import game.GameState;
 import marttoslo.helpers.BehaviourHelper;
 import model.Card;
@@ -17,7 +15,7 @@ public class HealMostValuable extends Behaviour {
 	@Override
 	public ArrayList<Action> GetActions(boolean isPlayer1, GameState gameState) {
 		ArrayList<Action> actions = new ArrayList<Action>();
-		/*
+		
 		ArrayList<Unit> friendlyLowHPUnits = BehaviourHelper.GetDamagedUnits(gameState, isPlayer1);
 		if (friendlyLowHPUnits.size() == 0) 
 			return fallbackBehaviour.GetActions(isPlayer1, gameState);
@@ -41,22 +39,20 @@ public class HealMostValuable extends Behaviour {
 				targets = altTargets;
 		}
 		
+		Unit[] bestPair = BehaviourHelper.CalculateBestHealingOnTargets(gameState, healers, friendlyLowHPUnits, true);
 		
-		
-		Unit[] bestPair = BehaviourHelper.CalculateBestAttackOnTargets(gameState, friendlyAttackUnits, enemyUnits, true);
-		
-		Unit bestAttacker = bestPair[0];
+		Unit bestHealer = bestPair[0];
 		Unit bestTarget = bestPair[1];
-
-		if (bestAttacker == null) {
+		
+		if (bestHealer == null) {
 			return fallbackBehaviour.GetActions(isPlayer1, gameState);
 		}
 
 		Position targetPosition = gameState.GetUnitPosition(bestTarget);
-		Position attackerPosition = gameState.GetUnitPosition(bestAttacker);
+		Position healerPosition = gameState.GetUnitPosition(bestHealer);
 		
-		actions.addAll(BehaviourHelper.GetAttackTargetUntilDeadAndCaptureStrategy(gameState, attackerPosition, targetPosition, gameState.APLeft, false));
-		*/
+		actions.addAll(BehaviourHelper.GetHealTargetStrategy(gameState, healerPosition, targetPosition, gameState.APLeft));
+		
 		return actions;
 	}
 
