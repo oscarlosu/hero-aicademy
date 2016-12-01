@@ -5,23 +5,29 @@ import java.util.ArrayList;
 import action.Action;
 import game.GameState;
 import marttoslo.helpers.BehaviourHelper;
+import marttoslo.portfolio.PortfolioController;
+import marttoslo.portfolio.PortfolioController.BehaviourType;
 import model.Card;
 import model.Position;
 import model.Unit;
 
 public class HealMostValuable extends Behaviour {
 
-	
+	private BehaviourType fallbackBehaviour;
+	public HealMostValuable(BehaviourType fallback) {
+		fallbackBehaviour = fallback;
+	}
+
 	@Override
 	public ArrayList<Action> GetActions(boolean isPlayer1, GameState gameState) {
 		ArrayList<Action> actions = new ArrayList<Action>();
 		
 		ArrayList<Unit> friendlyLowHPUnits = BehaviourHelper.GetDamagedUnits(gameState, isPlayer1);
 		if (friendlyLowHPUnits.size() == 0) 
-			return fallbackBehaviour.GetActions(isPlayer1, gameState);
+			return PortfolioController.GetActions(gameState, isPlayer1, fallbackBehaviour);
 		ArrayList<Unit> healers = gameState.GetAllUnitsOfType(isPlayer1, Card.CLERIC);
 		if (healers.size() == 0)
-			return fallbackBehaviour.GetActions(isPlayer1, gameState);
+			return PortfolioController.GetActions(gameState, isPlayer1, fallbackBehaviour);
 		
 		//Find teammates that can be healed, prioritizing other healers
 		ArrayList<Unit> targets = new ArrayList<Unit>();
@@ -34,7 +40,7 @@ public class HealMostValuable extends Behaviour {
 		}
 		if (targets.size() == 0) {
 			if (targets.size() == 0)
-				return fallbackBehaviour.GetActions(isPlayer1, gameState);
+				return PortfolioController.GetActions(gameState, isPlayer1, fallbackBehaviour);
 			else 
 				targets = altTargets;
 		}
@@ -45,7 +51,7 @@ public class HealMostValuable extends Behaviour {
 		Unit bestTarget = bestPair[1];
 		
 		if (bestHealer == null) {
-			return fallbackBehaviour.GetActions(isPlayer1, gameState);
+			return PortfolioController.GetActions(gameState, isPlayer1, fallbackBehaviour);
 		}
 
 		Position targetPosition = gameState.GetUnitPosition(bestTarget);

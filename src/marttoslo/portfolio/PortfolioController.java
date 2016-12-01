@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
+import org.omg.PortableServer.POAPackage.AdapterAlreadyExists;
+
 import action.Action;
 import ai.util.ActionPruner;
 import game.GameState;
@@ -20,8 +22,20 @@ public class PortfolioController {
 		FocusAttackDPS,
 		FocusAttackLowHP,
 		CaptureUnit,
-		HealMostValuable
+		HealMostValuable,
+		
+		AdvanceUnit,
+		RetreatUnit,
+		SpawnDefense,
+		SpawnOffense,
+		
+		
+		
+		
+		FinalFallback
 	}
+	
+	public static Random random;
 	
 	private static boolean initialized;
 	private static HashMap<BehaviourType, Behaviour> behaviours = new HashMap<BehaviourType, Behaviour>();
@@ -32,21 +46,35 @@ public class PortfolioController {
 		return behaviours.get(type).GetActions(isPlayer1, gameState);
 	}
 	
-	public static SmartAction GetRandomSmartAction(Random random) {
-		return new SmartAction(BehaviourType.values()[random.nextInt(BehaviourType.values().length)]);		
+	public static SmartAction GetRandomSmartAction(Random rng) {
+		random = rng;
+
+		BehaviourType behaviour = null;
+		while (behaviour == null && behaviour != BehaviourType.FinalFallback) {
+			behaviour = BehaviourType.values()[random.nextInt(BehaviourType.values().length)];
+		}
+		return new SmartAction(behaviour);		
 	}
 	
 	private static void Initialize() {
-		behaviours.put(BehaviourType.EquipDefense, new EquipDefense());
-		behaviours.put(BehaviourType.EquipScroll, new EquipScroll());
-		behaviours.put(BehaviourType.EquipSword, new EquipSword());
-		behaviours.put(BehaviourType.FocusAttackCrystal, new FocusAttackCrystal());
-		behaviours.put(BehaviourType.FocusAttackAndCaptureHealer, new FocusAttackHealer());
-		behaviours.put(BehaviourType.FocusAttackDPS, new FocusAttackDPS());
-		behaviours.put(BehaviourType.FocusAttackLowHP, new FocusAttackLowHP());
-		behaviours.put(BehaviourType.CaptureUnit, new CaptureUnit());
-		behaviours.put(BehaviourType.HealMostValuable, new HealMostValuable());
+		behaviours.put(BehaviourType.EquipDefense, new EquipDefense(BehaviourType.HealMostValuable));
+		behaviours.put(BehaviourType.EquipScroll, new EquipScroll(BehaviourType.EquipSword));
+		behaviours.put(BehaviourType.EquipSword, new EquipSword(BehaviourType.EquipDefense));
+		behaviours.put(BehaviourType.FocusAttackCrystal, new FocusAttackCrystal(BehaviourType.FocusAttackAndCaptureHealer));
+		behaviours.put(BehaviourType.FocusAttackAndCaptureHealer, new FocusAttackHealer(BehaviourType.FocusAttackDPS));
+		behaviours.put(BehaviourType.FocusAttackDPS, new FocusAttackDPS(BehaviourType.FocusAttackLowHP));
+		behaviours.put(BehaviourType.FocusAttackLowHP, new FocusAttackLowHP(BehaviourType.SpawnOffense));
+		behaviours.put(BehaviourType.CaptureUnit, new CaptureUnit(BehaviourType.FocusAttackLowHP));
+		behaviours.put(BehaviourType.HealMostValuable, new HealMostValuable(BehaviourType.SpawnDefense));
+		behaviours.put(BehaviourType.AdvanceUnit, new AdvanceUnit(BehaviourType.FinalFallback));
+		behaviours.put(BehaviourType.RetreatUnit, new RetreatUnit(BehaviourType.FinalFallback));
+		behaviours.put(BehaviourType.SpawnOffense, new SpawnOffense(BehaviourType.AdvanceUnit));
+		behaviours.put(BehaviourType.SpawnDefense, new SpawnDefense(BehaviourType.RetreatUnit));
 		
+		
+		
+
+		behaviours.put(BehaviourType.FinalFallback, new FinalFallback());
 		initialized = true;
 	}
 }

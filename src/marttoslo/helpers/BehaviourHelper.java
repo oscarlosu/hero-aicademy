@@ -474,7 +474,7 @@ public class BehaviourHelper {
 	public static ArrayList<Unit> GetDamagedUnits(GameState gameState, boolean isPlayer1) {
 		ArrayList<Unit> damagedUnits = new ArrayList<Unit>();
 		
-		for (Unit unit : gameState.GetAllUnits(isPlayer1)) {
+		for (Unit unit : gameState.GetAllUnitsFromTeam(isPlayer1)) {
 			if (unit.hp < unit.unitClass.maxHP)
 				damagedUnits.add(unit);
 		}
@@ -491,7 +491,7 @@ public class BehaviourHelper {
 	public static ArrayList<Unit> GetDeadUnits(GameState gameState, boolean isPlayer1) {
 		ArrayList<Unit> deadUnits = new ArrayList<Unit>();
 		
-		for (Unit unit : gameState.GetAllUnits(isPlayer1)) {
+		for (Unit unit : gameState.GetAllUnitsFromTeam(isPlayer1)) {
 			if (unit.hp == 0)
 				deadUnits.add(unit);
 		}

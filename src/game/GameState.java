@@ -1332,10 +1332,23 @@ public class GameState {
 		return returnValues;
 	}
 	
-	public ArrayList<Unit> GetAllUnits(boolean p1Units) {
+	public ArrayList<Unit> GetAllUnits() {
 		if (unitList.isEmpty())
 			CacheUnits();
 		return unitList;
+	}
+	
+	public ArrayList<Unit> GetAllUnitsFromTeam(boolean p1Units) {
+		if (unitList.isEmpty())
+			CacheUnits();
+		ArrayList<Unit> returnValues = new ArrayList<Unit>();
+		for (Unit unit : unitList) {
+			if (unit.p1Owner && p1Units)
+				returnValues.add(unit);
+			else if (!unit.p1Owner && !p1Units)
+				returnValues.add(unit);
+		}
+		return returnValues;
 	}
 	
 	public Position GetUnitPosition(Unit unit) {
@@ -1366,6 +1379,29 @@ public class GameState {
 					Position unitPosition = new Position(x, y);
 					unitPositions.put(units[x][y], unitPosition);
 				}
+	}
+	
+	public ArrayList<Card> GetCardsFromHand(boolean isPlayer1, Card...cardTypes) {
+		List<Card> types = Arrays.asList(cardTypes);
+		ArrayList<Card> returnValues = new ArrayList<Card>();
+		CardSet hand = null;
+		hand = (isPlayer1) ? p1Hand : p2Hand;
+		for (int i = 0; i < hand.size; i++) {
+			Card card = hand.get(i);
+			if (types.contains(card))
+				returnValues.add(card);
+		}
+		return returnValues;
+	}
+	
+	public ArrayList<Position> GetSquarePositions(SquareType type) {
+		ArrayList<Position> positions = new ArrayList<Position>();
+		for (int x = 0; x < map.width; x++)
+			for (int y = 0; y < map.height; y++)
+				if (map.squares[x][y] == type) {
+					positions.add(new Position(x, y));
+				}
+		return positions;
 	}
 
 }

@@ -1,28 +1,33 @@
 package marttoslo.portfolio.behaviours;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import action.Action;
 import game.GameState;
 import marttoslo.helpers.BehaviourHelper;
+import marttoslo.portfolio.PortfolioController;
+import marttoslo.portfolio.PortfolioController.BehaviourType;
 import model.Card;
 import model.Position;
 import model.Unit;
 
 public class FocusAttackCrystal extends Behaviour {
 
+	private BehaviourType fallbackBehaviour;
+	public FocusAttackCrystal(BehaviourType fallback) {
+		fallbackBehaviour = fallback;
+	}
 	
 	@Override
 	public ArrayList<Action> GetActions(boolean isPlayer1, GameState gameState) {
 		ArrayList<Action> actions = new ArrayList<Action>();
 		ArrayList<Unit> crystals = gameState.GetAllUnitsOfType(!isPlayer1, Card.CRYSTAL);
 		if (crystals.size() == 0) 
-			return fallbackBehaviour.GetActions(isPlayer1, gameState);
+			return PortfolioController.GetActions(gameState, isPlayer1, fallbackBehaviour);
 		ArrayList<Unit> friendlyAttackUnits = gameState.GetAllUnitsOfType(isPlayer1, Card.ARCHER, Card.WIZARD, Card.NINJA, Card.CLERIC, Card.KNIGHT);
 		if (friendlyAttackUnits.size() == 0)
-			return fallbackBehaviour.GetActions(isPlayer1, gameState);
+			return PortfolioController.GetActions(gameState, isPlayer1, fallbackBehaviour);
 		
 		int bestDamage = 0;
 		int nrOfAPSpent = Integer.MAX_VALUE;
