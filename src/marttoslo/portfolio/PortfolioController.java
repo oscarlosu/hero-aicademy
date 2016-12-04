@@ -27,6 +27,7 @@ public class PortfolioController {
 		RetreatUnit,
 		SpawnDefense,
 		SpawnOffense,
+		UsePotion,
 		
 		
 		
@@ -70,6 +71,7 @@ public class PortfolioController {
 		behaviours.put(BehaviourType.RetreatUnit, new RetreatUnit(BehaviourType.FinalFallback));
 		behaviours.put(BehaviourType.SpawnOffense, new SpawnOffense(BehaviourType.AdvanceUnit));
 		behaviours.put(BehaviourType.SpawnDefense, new SpawnDefense(BehaviourType.RetreatUnit));
+		behaviours.put(BehaviourType.UsePotion, new UsePotion(BehaviourType.EquipDefense));
 		
 		
 		

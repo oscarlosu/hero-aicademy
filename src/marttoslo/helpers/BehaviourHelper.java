@@ -545,4 +545,17 @@ public class BehaviourHelper {
 		
 		return deadUnits;
 	}
+	
+	public static Unit GetLowestHpUnit(GameState gameState, boolean isPlayer1) {
+		ArrayList<Unit> damagedUnits = GetDamagedUnits(gameState, isPlayer1);
+		int lowestHP = Integer.MAX_VALUE;
+		Unit lowestUnit = null;
+		for (Unit u : damagedUnits) {
+			if (u.hp < lowestHP) {
+				lowestHP = u.hp;
+				lowestUnit = u;
+			}
+		}
+		return lowestUnit;
+	}
 }
