@@ -145,6 +145,7 @@ public class Experiment {
 			AI p1 = new OnlineEvolution(true, 100, 0.1, 0.5, budget, new HeuristicEvaluator(false), false);	
 			((OnlineEvolution)p1).setSeed(seed);
 			// RHCA
+			//100, 30
 			AI p2 = new OnlineCoevolutionPortfolio(100, 30, 0.3, budget, new HeuristicEvaluator(false), false);
 			((OnlineCoevolutionPortfolio)p2).setSeed(seed);
 			

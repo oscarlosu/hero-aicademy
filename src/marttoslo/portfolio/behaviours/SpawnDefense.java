@@ -40,6 +40,8 @@ public class SpawnDefense extends Behaviour {
 		for (Position pos : deploySquares) {
 			if (gameState.units[pos.x][pos.y] == null) {
 				actions.add(new DropAction(unit, pos));
+
+				//System.out.println("EXECUTING: SpawnDefense");
 				return actions;
 			}
 		}

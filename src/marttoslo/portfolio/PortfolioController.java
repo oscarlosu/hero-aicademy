@@ -14,16 +14,15 @@ import marttoslo.portfolio.behaviours.*;
 
 public class PortfolioController {
 	public static enum BehaviourType {
-		EquipDefense,
 		EquipScroll,
 		EquipSword,
+		EquipDefense,
 		FocusAttackCrystal,
 		FocusAttackAndCaptureHealer,
 		FocusAttackDPS,
-		FocusAttackLowHP,
 		CaptureUnit,
+		FocusAttackLowHP,
 		HealMostValuable,
-		
 		AdvanceUnit,
 		RetreatUnit,
 		SpawnDefense,
@@ -43,6 +42,7 @@ public class PortfolioController {
 	public static ArrayList<Action> GetActions(GameState gameState, boolean isPlayer1, BehaviourType type) {
 		if (!initialized)
 			Initialize();
+		//System.out.println("PC " +isPlayer1);
 		return behaviours.get(type).GetActions(isPlayer1, gameState);
 	}
 	
@@ -57,14 +57,14 @@ public class PortfolioController {
 	}
 	
 	private static void Initialize() {
-		behaviours.put(BehaviourType.EquipDefense, new EquipDefense(BehaviourType.HealMostValuable));
 		behaviours.put(BehaviourType.EquipScroll, new EquipScroll(BehaviourType.EquipSword));
 		behaviours.put(BehaviourType.EquipSword, new EquipSword(BehaviourType.EquipDefense));
+		behaviours.put(BehaviourType.EquipDefense, new EquipDefense(BehaviourType.HealMostValuable));
 		behaviours.put(BehaviourType.FocusAttackCrystal, new FocusAttackCrystal(BehaviourType.FocusAttackAndCaptureHealer));
 		behaviours.put(BehaviourType.FocusAttackAndCaptureHealer, new FocusAttackHealer(BehaviourType.FocusAttackDPS));
 		behaviours.put(BehaviourType.FocusAttackDPS, new FocusAttackDPS(BehaviourType.FocusAttackLowHP));
-		behaviours.put(BehaviourType.FocusAttackLowHP, new FocusAttackLowHP(BehaviourType.SpawnOffense));
 		behaviours.put(BehaviourType.CaptureUnit, new CaptureUnit(BehaviourType.FocusAttackLowHP));
+		behaviours.put(BehaviourType.FocusAttackLowHP, new FocusAttackLowHP(BehaviourType.SpawnOffense));
 		behaviours.put(BehaviourType.HealMostValuable, new HealMostValuable(BehaviourType.SpawnDefense));
 		behaviours.put(BehaviourType.AdvanceUnit, new AdvanceUnit(BehaviourType.FinalFallback));
 		behaviours.put(BehaviourType.RetreatUnit, new RetreatUnit(BehaviourType.FinalFallback));

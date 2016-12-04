@@ -24,7 +24,7 @@ public class FocusAttackDPS extends Behaviour {
 		ArrayList<Unit> enemyUnits = gameState.GetAllUnitsFromTeam(!isPlayer1);
 		if (enemyUnits.size() == 0) 
 			return PortfolioController.GetActions(gameState, isPlayer1, fallbackBehaviour);
-		ArrayList<Unit> friendlyAttackUnits = gameState.GetAllUnitsOfType(isPlayer1, Card.ARCHER, Card.WIZARD, Card.NINJA);
+		ArrayList<Unit> friendlyAttackUnits = gameState.GetAllUnitsOfType(isPlayer1, false, Card.ARCHER, Card.WIZARD, Card.NINJA);
 		if (friendlyAttackUnits.size() == 0)
 			return PortfolioController.GetActions(gameState, isPlayer1, fallbackBehaviour);
 		
@@ -57,7 +57,7 @@ public class FocusAttackDPS extends Behaviour {
 		Position attackerPosition = gameState.GetUnitPosition(bestAttacker);
 		
 		actions.addAll(BehaviourHelper.GetAttackTargetUntilDeadAndCaptureStrategy(gameState, attackerPosition, targetPosition, gameState.APLeft, false));
-		
+
 		return actions;
 	}
 

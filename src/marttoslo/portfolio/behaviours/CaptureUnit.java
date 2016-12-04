@@ -23,7 +23,7 @@ public class CaptureUnit extends Behaviour {
 		ArrayList<Unit> enemyUnits = BehaviourHelper.GetDeadUnits(gameState, !isPlayer1);
 		if (enemyUnits.size() == 0) 
 			return PortfolioController.GetActions(gameState, isPlayer1, fallbackBehaviour);
-		ArrayList<Unit> friendlyUnits = gameState.GetAllUnitsOfType(isPlayer1, Card.ARCHER, Card.WIZARD, Card.NINJA, Card.KNIGHT);
+		ArrayList<Unit> friendlyUnits = gameState.GetAllUnitsOfType(isPlayer1, false, Card.ARCHER, Card.WIZARD, Card.NINJA, Card.KNIGHT);
 		if (friendlyUnits.size() == 0)
 			return PortfolioController.GetActions(gameState, isPlayer1, fallbackBehaviour);
 		
@@ -46,8 +46,7 @@ public class CaptureUnit extends Behaviour {
 		if (bestApUsed > gameState.APLeft)
 			return PortfolioController.GetActions(gameState, isPlayer1, fallbackBehaviour);
 		
-		actions.addAll(BehaviourHelper.MoveTo(gameState, closestUnit, gameState.GetUnitPosition(selectedDeadUnit), gameState.APLeft));
-		
+		actions.addAll(BehaviourHelper.MoveTo(gameState, closestUnit, gameState.GetUnitPosition(closestUnit), gameState.GetUnitPosition(selectedDeadUnit), gameState.APLeft));
 		return actions;
 	}
 

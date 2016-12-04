@@ -36,7 +36,7 @@ public class EquipScroll extends Behaviour {
 		for (Card unit : priotiizedListOfUnits) {
 			//Get all units on board
 			ArrayList<Unit> units = new ArrayList<Unit>();
-			units = gameState.GetAllUnitsOfType(isPlayer1, unit);
+			units = gameState.GetAllUnitsOfType(isPlayer1, false, unit);
 
 			if (units.size() == 0) {
 				continue;

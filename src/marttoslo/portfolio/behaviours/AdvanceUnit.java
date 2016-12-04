@@ -20,6 +20,7 @@ public class AdvanceUnit extends Behaviour {
 	@Override
 	public ArrayList<Action> GetActions(boolean isPlayer1, GameState gameState) {
 		ArrayList<Action> actions = new ArrayList<Action>();
+		//System.out.println("ADVANCE: isplayer1 " + isPlayer1);
 		ArrayList<Unit> units = gameState.GetAllUnitsFromTeam(isPlayer1);
 		if (units.size() == 0)
 			return PortfolioController.GetActions(gameState, isPlayer1, fallbackBehaviour);
@@ -31,8 +32,15 @@ public class AdvanceUnit extends Behaviour {
 		int y = PortfolioController.random.nextInt(gameState.map.height);
 		Position moveTowards = new Position(x, y);
 		
-		actions.add(BehaviourHelper.MoveTowardsTarget(gameState, unitToAdvance, unitPosition, moveTowards, unitToAdvance.unitClass.speed));
+		Action nextAction = BehaviourHelper.MoveTowardsTarget(gameState, unitToAdvance, unitPosition, moveTowards, unitToAdvance.unitClass.speed);
+		//All spots are taken, so unit cannot advance
+		if (nextAction == null) 
+			return PortfolioController.GetActions(gameState, isPlayer1, fallbackBehaviour);
+			
+		actions.add(nextAction);
 		
+		
+		//System.out.println("EXECUTING: AdvanceUnit");
 		return actions;
 	}
 

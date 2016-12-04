@@ -21,10 +21,10 @@ public class FocusAttackHealer extends Behaviour {
 	@Override
 	public ArrayList<Action> GetActions(boolean isPlayer1, GameState gameState) {
 		ArrayList<Action> actions = new ArrayList<Action>();
-		ArrayList<Unit> healers = gameState.GetAllUnitsOfType(!isPlayer1, Card.CLERIC);
+		ArrayList<Unit> healers = gameState.GetAllUnitsOfType(!isPlayer1, true, Card.CLERIC);
 		if (healers.size() == 0) 
 			return PortfolioController.GetActions(gameState, isPlayer1, fallbackBehaviour);
-		ArrayList<Unit> friendlyAttackUnits = gameState.GetAllUnitsOfType(isPlayer1, Card.ARCHER, Card.WIZARD, Card.NINJA);
+		ArrayList<Unit> friendlyAttackUnits = gameState.GetAllUnitsOfType(isPlayer1, false, Card.ARCHER, Card.WIZARD, Card.NINJA);
 		if (friendlyAttackUnits.size() == 0)
 			return PortfolioController.GetActions(gameState, isPlayer1, fallbackBehaviour);
 				

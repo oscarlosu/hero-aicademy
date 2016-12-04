@@ -24,7 +24,7 @@ public class FocusAttackLowHP extends Behaviour {
 		ArrayList<Unit> enemyUnits = BehaviourHelper.GetDamagedUnits(gameState, !isPlayer1);
 		if (enemyUnits.size() == 0) 
 			return PortfolioController.GetActions(gameState, isPlayer1, fallbackBehaviour);
-		ArrayList<Unit> friendlyAttackUnits = gameState.GetAllUnitsOfType(isPlayer1, Card.ARCHER, Card.WIZARD, Card.NINJA);
+		ArrayList<Unit> friendlyAttackUnits = gameState.GetAllUnitsOfType(isPlayer1, false, Card.ARCHER, Card.WIZARD, Card.NINJA);
 		if (friendlyAttackUnits.size() == 0)
 			return PortfolioController.GetActions(gameState, isPlayer1, fallbackBehaviour);
 		

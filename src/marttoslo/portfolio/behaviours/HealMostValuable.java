@@ -20,12 +20,13 @@ public class HealMostValuable extends Behaviour {
 
 	@Override
 	public ArrayList<Action> GetActions(boolean isPlayer1, GameState gameState) {
+		//System.out.println("AFTER : " +isPlayer1);
 		ArrayList<Action> actions = new ArrayList<Action>();
-		
+		//System.out.println("HEAL: isplayer1 " + isPlayer1);
 		ArrayList<Unit> friendlyLowHPUnits = BehaviourHelper.GetDamagedUnits(gameState, isPlayer1);
 		if (friendlyLowHPUnits.size() == 0) 
 			return PortfolioController.GetActions(gameState, isPlayer1, fallbackBehaviour);
-		ArrayList<Unit> healers = gameState.GetAllUnitsOfType(isPlayer1, Card.CLERIC);
+		ArrayList<Unit> healers = gameState.GetAllUnitsOfType(isPlayer1, false, Card.CLERIC);
 		if (healers.size() == 0)
 			return PortfolioController.GetActions(gameState, isPlayer1, fallbackBehaviour);
 		
@@ -44,7 +45,6 @@ public class HealMostValuable extends Behaviour {
 			else 
 				targets = altTargets;
 		}
-		
 		Unit[] bestPair = BehaviourHelper.CalculateBestHealingOnTargets(gameState, healers, friendlyLowHPUnits, true);
 		
 		Unit bestHealer = bestPair[0];
@@ -56,9 +56,7 @@ public class HealMostValuable extends Behaviour {
 
 		Position targetPosition = gameState.GetUnitPosition(bestTarget);
 		Position healerPosition = gameState.GetUnitPosition(bestHealer);
-		
 		actions.addAll(BehaviourHelper.GetHealTargetStrategy(gameState, healerPosition, targetPosition, gameState.APLeft));
-		
 		return actions;
 	}
 

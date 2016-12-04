@@ -293,11 +293,13 @@ public class GameState {
 	}
 
 	public void update(List<Action> actions) {
+		ClearCache();
 		for (final Action action : actions)
 			update(action);
 	}
 
 	public void update(Action action) {
+		ClearCache();
 
 		try {
 			chainTargets.clear();
@@ -1321,13 +1323,16 @@ public class GameState {
 		}
 	}
 	
-	public ArrayList<Unit> GetAllUnitsOfType(boolean p1Units, Card... types) {
+	public ArrayList<Unit> GetAllUnitsOfType(boolean p1Units, boolean includeDead, Card... types) {
 		if (unitList.isEmpty())
 			CacheUnits();
 		ArrayList<Unit> returnValues = new ArrayList<Unit>();
 		for (Unit unit : unitList) {
-			if (Arrays.asList(types).contains(unit.unitClass.card) && unit.p1Owner == p1Units) 
+			if (Arrays.asList(types).contains(unit.unitClass.card) && unit.p1Owner == p1Units) {
+				if (unit.hp == 0 && !includeDead)
+					continue;
 				returnValues.add(unit);
+			}
 		}
 		return returnValues;
 	}
@@ -1343,6 +1348,8 @@ public class GameState {
 			CacheUnits();
 		ArrayList<Unit> returnValues = new ArrayList<Unit>();
 		for (Unit unit : unitList) {
+			if(unit.unitClass.card == Card.CRYSTAL)
+				continue;
 			if (unit.p1Owner && p1Units)
 				returnValues.add(unit);
 			else if (!unit.p1Owner && !p1Units)
@@ -1372,6 +1379,8 @@ public class GameState {
 	}
 	
 	private void CacheUnits() {
+		//System.out.println("CACHCHES");
+		unitPositions = new HashMap<Unit, Position>();
 		for (int x = 0; x < map.width; x++)
 			for (int y = 0; y < map.height; y++)
 				if (units[x][y] != null) {
@@ -1404,4 +1413,15 @@ public class GameState {
 		return positions;
 	}
 
+	public void DebugUnitpositions() {
+		System.out.print("DEBUG ");
+		for (Unit u : unitPositions.keySet()) {
+			System.out.print(unitPositions.get(u) + " - ");
+		}
+	}
+	
+	public void ClearCache() {
+		unitList = new ArrayList<Unit>();
+		unitPositions = new HashMap<Unit, Position>();
+	}
 }

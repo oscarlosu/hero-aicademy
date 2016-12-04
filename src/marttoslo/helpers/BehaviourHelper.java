@@ -24,7 +24,7 @@ public class BehaviourHelper {
 		int distanceToAttackRange = attackerPosition.distance(defenderPosition) - attacker.unitClass.attack.range;
 		
 		if (DivideCeil(distanceToAttackRange, attacker.unitClass.speed) >= actionPointsToSpend)
-			return new int[] {0, actionPointsToSpend};
+			return new int[] {0, 0, actionPointsToSpend, 0};
 		
 		int actionPointsToSpendOnAttacking = actionPointsToSpend - distanceToAttackRange;
 		int actionPointsSpent = 0;
@@ -53,9 +53,12 @@ public class BehaviourHelper {
 		Position healerPosition = gameState.GetUnitPosition(healer);
 		Position healedPosition = gameState.GetUnitPosition(healed);
 		int distanceToAttackRange = healerPosition.distance(healedPosition) - healer.unitClass.attack.range;
-		
-		if (DivideCeil(distanceToAttackRange, healer.unitClass.speed) >= actionPointsToSpend)
-			return new int[] {0, actionPointsToSpend};
+		if (distanceToAttackRange > 0) {
+			if (DivideCeil(distanceToAttackRange, healer.unitClass.speed) >= actionPointsToSpend)
+				return new int[] {0, 0, 0, 0};
+		}
+		else
+			distanceToAttackRange = 0;
 		
 		int actionPointsToSpendOnHealing = actionPointsToSpend - distanceToAttackRange;
 		int actionPointsSpent = 0;
@@ -93,9 +96,18 @@ public class BehaviourHelper {
 		
 		//while not in attack range and have more AP to spend, move towards attack range
 		ArrayList<UnitAction> actionsToRange = MoveUnitToRange(gameState, attacker, defenderPosition, attacker.unitClass.attack.range, actionPointsToSpend);
+		if (actionsToRange.size() == 0 && attackerPosition.distance(defenderPosition) <= attacker.unitClass.attack.range)
+			return actions;
 		actionPointsToSpend -= actionsToRange.size();
 		actions.addAll(actionsToRange);
-		Position currentPosition = actionsToRange.get(actionsToRange.size()-1).to;
+		
+		Position currentPosition = attackerPosition;
+		if (actionsToRange.size() > 0)
+			currentPosition = actionsToRange.get(actionsToRange.size()-1).to;
+		
+		//If unit only could move a little but still isn't in range
+		if (currentPosition.distance(defenderPosition) <= attacker.unitClass.attack.range)
+			return actions;
 		
 		//Is there action points left to attack unit?
 		if (actionPointsToSpend == 0) 				
@@ -113,10 +125,15 @@ public class BehaviourHelper {
 			return actions;
 		
 		ArrayList<UnitAction> beforeCapture = new ArrayList<UnitAction>(actions);
-		ArrayList<UnitAction> moveTo = MoveTo(gameState, attacker, defenderPosition, actionPointsToSpend);
+		if (actionPointsToSpend == 0)
+			return beforeCapture;
+		
+		ArrayList<UnitAction> moveTo = MoveTo(gameState, attacker, currentPosition, defenderPosition, actionPointsToSpend);
 		actionPointsToSpend -= moveTo.size();
-		currentPosition = moveTo.get(moveTo.size()-1).to;
-		actions.addAll(moveTo);
+		if (moveTo.size() > 0) {
+			currentPosition = moveTo.get(moveTo.size()-1).to;
+			actions.addAll(moveTo);
+		}
 		
 		//Due to the possibility of path being blocked, costing extra action points to go around, it's possible not to be able to reach
 		if (currentPosition == defenderPosition)
@@ -138,12 +155,23 @@ public class BehaviourHelper {
 		ArrayList<UnitAction> actions = new ArrayList<UnitAction>();
 		Unit healer = gameState.units[healerPosition.x][healerPosition.y];
 		Unit target = gameState.units[targetPosition.x][targetPosition.y];
-		
+
 		//while not in attack range and have more AP to spend, move towards attack range
 		ArrayList<UnitAction> actionsToRange = MoveUnitToRange(gameState, healer, targetPosition, healer.unitClass.heal.range, actionPointsToSpend);
+		
+		//If unit couldn't move at all
+		if (actionsToRange.size() == 0 && healerPosition.distance(targetPosition) <= healer.unitClass.heal.range)
+			return actions;
 		actionPointsToSpend -= actionsToRange.size();
 		actions.addAll(actionsToRange);
-		Position currentPosition = actionsToRange.get(actionsToRange.size()-1).to;
+		
+		Position currentPosition = healerPosition;
+		if (actionsToRange.size() > 0)
+			currentPosition = actionsToRange.get(actionsToRange.size()-1).to;
+		
+		//If unit only could move a little but still isn't in range
+		if (currentPosition.distance(targetPosition) <= healer.unitClass.heal.range)
+			return actions;
 		
 		//Is there action points left to attack unit?
 		if (actionPointsToSpend == 0) 				
@@ -172,17 +200,19 @@ public class BehaviourHelper {
 	 * @param actionPointsToSpend	How many action points is the algorithm allowed to spend
 	 * @return
 	 */
-	public static ArrayList<UnitAction> MoveTo(GameState gameState, Unit unit, Position to, int actionPointsToSpend) {
+	public static ArrayList<UnitAction> MoveTo(GameState gameState, Unit unit, Position from, Position to, int actionPointsToSpend) {
 		ArrayList<UnitAction> actions = new ArrayList<UnitAction>();
-		Position currentPosition = gameState.GetUnitPosition(unit);
+		Position currentPosition = from;
 		
 		while (currentPosition != to && actionPointsToSpend > 0) {
 			UnitAction newAction = MoveTowardsTarget(gameState, unit, currentPosition, to, currentPosition.distance(to));
+			if (newAction == null)
+				return actions;
 			currentPosition = newAction.to;
 			actions.add(newAction);
 			actionPointsToSpend--;
 		}
-		
+
 		return actions;
 	}
 	
@@ -198,7 +228,15 @@ public class BehaviourHelper {
 	 */
 	public static UnitAction MoveTowardsTarget(GameState gameState, Unit movingUnit, Position from, Position towards, int maxMoveDistance) {
 		ArrayList<Position> availablePositions = getAvailableMovePositions(gameState, movingUnit, from, maxMoveDistance);
+		if (availablePositions.size() == 0) {
+			//All spots within range are taken by other units
+			return null;
+		}
 		Position closestPosition = GetClosestPositionToPoint(gameState, availablePositions, towards);
+		
+		//If it couldn't find a spot closer to the target, only further away
+		if (from.distance(towards) < closestPosition.distance(towards))
+			return null;
 		return new UnitAction(from, closestPosition, UnitActionType.MOVE);
 	}
 	
@@ -213,10 +251,14 @@ public class BehaviourHelper {
 	public static ArrayList<UnitAction> MoveUnitToRange(GameState gameState, Unit moving, Position attackSpot, int range, int actionPointsToSpend) {
 		ArrayList<UnitAction> actions = new ArrayList<UnitAction>();
 		Position currentPosition = gameState.GetUnitPosition(moving);
-		
 		while(currentPosition.distance(attackSpot) > range && actionPointsToSpend > 0) {
 			int moveDistance = currentPosition.distance(attackSpot) - range;
-			UnitAction newAction = MoveTowardsTarget(gameState, moving, currentPosition, attackSpot, moveDistance);
+			int moveRange = (moveDistance < moving.unitClass.speed) ? moveDistance : moving.unitClass.speed;
+			UnitAction newAction = MoveTowardsTarget(gameState, moving, currentPosition, attackSpot, moveRange);
+			if (newAction == null) {
+				return actions;
+			}
+			//System.out.println("Moving unit from: " + currentPosition.x + "," + currentPosition.y + " to: " + newAction.to.x + "," + newAction.to.y);
 			actions.add(newAction);
 			currentPosition = newAction.to;
 			actionPointsToSpend--;
@@ -248,6 +290,7 @@ public class BehaviourHelper {
 	 * @return
 	 */
 	public static ArrayList<Position> getAvailableMovePositions(GameState gameState, Unit movingUnit, Position unitPosition, int maxMoveDistance) {
+		if (maxMoveDistance > movingUnit.unitClass.speed) maxMoveDistance = movingUnit.unitClass.speed;
 		int speed = movingUnit.unitClass.speed - (movingUnit.unitClass.speed - maxMoveDistance);
 		ArrayList<Position> availablePositions = new ArrayList<Position>();
 		for (int x = unitPosition.x-speed; x < unitPosition.x+speed; x++) {
@@ -255,6 +298,11 @@ public class BehaviourHelper {
 				if (x < 0 || x >= gameState.map.width || y < 0 || y >= gameState.map.height) 
 					continue;
 				Position pos = new Position(x, y);
+				/*
+				System.out.println("CHECK POS: " + pos);
+				System.out.println("CHECK POS IN RANGE " + (pos.distance(unitPosition ) <= speed));
+				System.out.println("CHECK UNIT " + gameState.units[x][y]);
+				*/
 				if (gameState.units[x][y] == null && pos.distance(unitPosition) <= speed)
 					availablePositions.add(pos);
 			}
@@ -390,7 +438,6 @@ public class BehaviourHelper {
 			bestAttacker = null;
 			bestTarget = null;
 		}
-		
 		return new Unit[] {bestAttacker, bestTarget};
 	}
 	
@@ -412,7 +459,7 @@ public class BehaviourHelper {
 		//Priotitizes damage - Would rather spend more action points on using Unit that can deal more damage
 		for (Unit target : potentialTargets) {
 			for (Unit healer : healers) {
-				
+				if (target == healer) continue;
 				//TODO: Killed in least amount of AP should be prioritized over all others
 				int[] result = BehaviourHelper.CalculateMaxHealing(gameState, healer, target, gameState.APLeft);
 				if (result[3] == 1 && prioritizeRevive) {
