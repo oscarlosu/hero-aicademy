@@ -175,7 +175,8 @@ public class OnlineEvolution implements AI, AiVisualizor {
 			// TODO: Only if needed?!
 			if(saveStats) {
 				fitnesses.put(g, pop.get(0).fitness());
-				bestActions.add(clone(pop.get(0).actions));
+				if(visualizor != null)
+					bestActions.add(clone(pop.get(0).actions));
 				if(champion == null || pop.get(0) != champion) {
 					champion = pop.get(0);
 					championFindGen = g;
@@ -207,7 +208,8 @@ public class OnlineEvolution implements AI, AiVisualizor {
 		
 		if(saveStats) {
 			generations.add((double)g);
-			bestVisits.add((double)(pop.get(0).visits));
+			if(visualizor != null)
+				bestVisits.add((double)(pop.get(0).visits));
 			sumChampionFindGen += championFindGen;
 			championFitnesses.add(pop.get(0).fitness());
 		}		

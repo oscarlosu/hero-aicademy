@@ -168,8 +168,10 @@ public class OnlineCoevolution implements AI, AiVisualizor {
 			if(saveStats) {
 				hostFitnesses.put(g, hostPopulation.get(0).fitness());
 				parasiteFitnesses.put(g, parasitePopulation.get(0).fitness());
-				bestHostActions.add(clone(hostPopulation.get(0).actions));
-				bestParasiteActions.add(clone(parasitePopulation.get(0).actions));
+				if(visualizer != null) {
+					bestHostActions.add(clone(hostPopulation.get(0).actions));
+					bestParasiteActions.add(clone(parasitePopulation.get(0).actions));
+				}				
 				if(championHost == null || hostPopulation.get(0) != championHost) {
 					championHost = hostPopulation.get(0);
 					championHostFindGen = g;
@@ -201,7 +203,8 @@ public class OnlineCoevolution implements AI, AiVisualizor {
 		actions = hostPopulation.get(0).actions;
 		if(saveStats) {
 			generations.add((double)g);
-			bestVisits.add((double)(hostPopulation.get(0).visits));
+			if(visualizer != null)
+				bestVisits.add((double)(hostPopulation.get(0).visits));
 			sumChampionHostFindGen += championHostFindGen;
 			sumChampionParasiteFindGen += championParasiteFindGen;
 			championHostFitnesses.add(hostPopulation.get(0).fitness());

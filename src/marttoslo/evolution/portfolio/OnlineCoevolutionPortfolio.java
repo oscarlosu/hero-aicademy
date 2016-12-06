@@ -165,21 +165,24 @@ public class OnlineCoevolutionPortfolio implements AI, AiVisualizor {
 				}
 				hostFitnesses.put(g, hostPopulation.get(0).fitness());
 				parasiteFitnesses.put(g, parasitePopulation.get(0).fitness());
-				bestHostActions.add(clone(hostPopulation.get(0).actions));
+				if(visualizer != null)
+					bestHostActions.add(clone(hostPopulation.get(0).actions));
 				
 				// Extract actions from parasite champion's SmartActions
-				clone.imitate(state);
-				List<BehaviourActionsPair> baPairs = new ArrayList<BehaviourActionsPair>();
-				List<Action> parasiteActions = new ArrayList<Action>();
-				boolean isPlayer1 = !clone.p1Turn;
-				for(int i = 0; i < championParasite.actions.size() && clone.APLeft > 0 && !clone.isTerminal; ++i) {
-					SmartAction sa = championParasite.actions.get(i);
-					sa.InitActions(clone, isPlayer1);				
-					baPairs.add(sa.updateStateAndResetWithPair(clone));
-					parasiteActions.addAll(baPairs.get(i).actions);
-					
-				}
-				bestParasiteActions.add(parasiteActions);
+				if(visualizer != null) {
+					clone.imitate(state);
+					List<BehaviourActionsPair> baPairs = new ArrayList<BehaviourActionsPair>();
+					List<Action> parasiteActions = new ArrayList<Action>();
+					boolean isPlayer1 = !clone.p1Turn;
+					for(int i = 0; i < championParasite.actions.size() && clone.APLeft > 0 && !clone.isTerminal; ++i) {
+						SmartAction sa = championParasite.actions.get(i);
+						sa.InitActions(clone, isPlayer1);				
+						baPairs.add(sa.updateStateAndResetWithPair(clone));
+						parasiteActions.addAll(baPairs.get(i).actions);
+						
+					}
+					bestParasiteActions.add(parasiteActions);
+				}				
 			}
 			
 			
@@ -226,7 +229,8 @@ public class OnlineCoevolutionPortfolio implements AI, AiVisualizor {
 		
 		if(saveStats) {
 			generations.add((double)g);
-			bestVisits.add((double)(hostPopulation.get(0).visits));
+			if(visualizer != null)
+				bestVisits.add((double)(hostPopulation.get(0).visits));
 			sumChampionHostFindGen += championHostFindGen;
 			sumChampionParasiteFindGen += championParasiteFindGen;
 			championHostFitnesses.add(hostPopulation.get(0).fitness());
