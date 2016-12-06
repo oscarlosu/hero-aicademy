@@ -1,12 +1,3 @@
-/.DS_Store
-/action/
-/ai/
-/com/
-/examples/
-/game/
-/libs/
 /marttoslo/
-/model/
-/pacman/
-/ui/
-/util/
+/ai/
+/game/
