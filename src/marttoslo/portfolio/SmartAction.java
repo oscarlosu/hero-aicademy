@@ -1,9 +1,11 @@
 package marttoslo.portfolio;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import action.Action;
 import game.GameState;
+import marttoslo.evolution.portfolio.BehaviourActionsPair;
 import marttoslo.portfolio.PortfolioController.BehaviourType;
 
 public class SmartAction extends Action {
@@ -59,5 +61,21 @@ public class SmartAction extends Action {
 			state.update(nextAction);
 		}
 		Reset();
+	}
+	
+	public BehaviourActionsPair updateStateAndResetWithPair(GameState state) {
+		List<Action> actions = new ArrayList<Action>();
+		final boolean p1Turn = state.p1Turn;
+		InitActions(state, p1Turn);
+		while (!state.isTerminal && p1Turn == state.p1Turn && HasNext()) {
+			Action nextAction = Next(state, p1Turn);
+			//System.out.println("Executing behaviour : " + behaviourType + "    -    ACTION: " + nextAction);
+			state.update(nextAction);
+			
+			actions.add(nextAction);
+		}
+		Reset();
+		
+		return new BehaviourActionsPair(behaviourType, actions);
 	}
 }

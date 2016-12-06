@@ -26,11 +26,16 @@ public class OnlineCoevolutionPortfolioVisualizer extends JComponent implements 
 	private int width;
 	private int height;
 	
+	private int graphWidth;
+	private int graphHeight;
+	
 	private int div;
 
 	private OnlineCoevolutionPortfolio rolling;
 	private List<Point> points;
 	private boolean control;
+	
+	private List<BehaviourActionsPair> parasiteBehaviourActionsPair;
 	
 	public OnlineCoevolutionPortfolioVisualizer(UI ui, OnlineCoevolutionPortfolio rolling) {
 		super();
@@ -40,7 +45,9 @@ public class OnlineCoevolutionPortfolioVisualizer extends JComponent implements 
 		frame = new JFrame();
 		frame.addKeyListener(this);
 		width = 320;
-		height = 110;
+		height = 410;
+		graphWidth = 320;
+		graphHeight = 110;
 		frame.setLocation(705, y);
 		y += height*1.2;
 		div = 10;
@@ -51,6 +58,8 @@ public class OnlineCoevolutionPortfolioVisualizer extends JComponent implements 
 		frame.setVisible(true);
 		this.points = new ArrayList<Point>();
 		this.control = false;
+		
+		parasiteBehaviourActionsPair = new ArrayList<BehaviourActionsPair>();
 	}
 	
 	public void update(){
@@ -71,30 +80,32 @@ public class OnlineCoevolutionPortfolioVisualizer extends JComponent implements 
 			
 			for(int gen : keys){
 				xprog =  ((double)gen)/((double)rolling.hostFitnesses.size());
-				x = (int) (div + (((double)(width-div-div)) * xprog));
+				x = (int) (div + (((double)(graphWidth-div-div)) * xprog));
 				val = rolling.hostFitnesses.get(gen);
 				val = (val - min) / (max -min);
-				y = (int) ((height-div) - val * (height-div-div));
+				y = (int) ((graphHeight-div) - val * (graphHeight-div-div));
 				synchronized (this) {
 					points.add(new Point(x,y));
 				}
 				if (rolling.bestHostActions.size() > gen)
 				{
-					//List<Action> bestHost = rolling.bestHostActions.get(gen);
-					//List<Action> bestParasite = rolling.bestParasiteActions.get(gen);
-					//ui.setActionLayer(bestHost, bestParasite);
+					List<Action> bestHost = rolling.bestHostActions.get(gen);
+					List<Action> bestParasite = rolling.bestParasiteActions.get(gen);
+					ui.setActionLayer(bestHost, bestParasite);					
 				}
 					
 				if (!control){
 					repaint();
 					ui.repaint();
-					//Thread.sleep(5);
+					Thread.sleep(5);
 				}
 			}
+			
+			parasiteBehaviourActionsPair = rolling.championParasiteBehaviourActions.get(rolling.championParasiteBehaviourActions.size() - 1);
 
 			repaint();
 			ui.repaint();
-			Thread.sleep(20);			
+			Thread.sleep(3000);			
 			
 		} catch (InterruptedException e) {
 			e.printStackTrace();
@@ -113,8 +124,8 @@ public class OnlineCoevolutionPortfolioVisualizer extends JComponent implements 
 		g.fillRect(0, 0, width*2, height*2);
 		
 		g.setColor(new Color(20, 20, 20));
-		g.drawLine(div, div, div, height-div);
-		g.drawLine(div, height-div, width-div, height-div);
+		g.drawLine(div, div, div, graphHeight-div);
+		g.drawLine(div, graphHeight-div, graphWidth-div, graphHeight-div);
 		
 		g.setColor(Color.RED);
 		
@@ -140,8 +151,24 @@ public class OnlineCoevolutionPortfolioVisualizer extends JComponent implements 
 			}
 		}
 		
-		g.setColor(new Color(200, 200, 200));
+		g.setColor(new Color(255, 255, 255));
 		g.drawOval(lastX-5, lastY-5, 10, 10);
+		
+		
+		// Write champion parasite behaviour-action pairs
+		g.setColor(new Color(0, 0, 0));
+		int yOffset = graphHeight + div;
+		for(int p = 0; p < parasiteBehaviourActionsPair.size(); ++p) {			
+			BehaviourActionsPair pair = parasiteBehaviourActionsPair.get(p);
+			g.drawString(pair.behaviour.name(), div, yOffset);
+			yOffset += 2 * div;
+			for(int a = 0; a < pair.actions.size(); ++a) {
+				g.drawString(pair.actions.get(a).toString(), 2 * div, yOffset);
+				yOffset += 2 * div;
+			}
+		}
+		
+		
 		
 	}
 

@@ -104,7 +104,6 @@ public class OnlineCoevolution implements AI, AiVisualizor {
 			if(stepped) {
 				Scanner s=new Scanner(System.in);
 				s.nextLine();
-				s.close();
 			}		
 		}
 			

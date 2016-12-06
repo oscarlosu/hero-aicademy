@@ -1,5 +1,6 @@
 package marttoslo.evolution.portfolio;
 
+import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
 import java.util.ArrayList;
@@ -43,6 +44,7 @@ public class OnlineCoevolutionPortfolio implements AI, AiVisualizor {
 	public int championParasiteFindGen;
 	public SmartGenome championParasite;
 	public List<Double> championParasiteFitnesses;
+	public List<List<BehaviourActionsPair>> championParasiteBehaviourActions;
 	
 	public List<Genome> hostPopulation;
 	public List<SmartGenome> parasitePopulation;
@@ -50,7 +52,7 @@ public class OnlineCoevolutionPortfolio implements AI, AiVisualizor {
 	public Map<Integer, Double> parasiteFitnesses;
 	public List<List<Action>> bestHostActions;
 	public List<List<Action>> bestParasiteActions;
-	public List<List<SmartAction>> bestParasiteSmartActions;
+	
 	
 	private OnlineCoevolutionPortfolioVisualizer visualizer;
 	private Random random;
@@ -75,7 +77,7 @@ public class OnlineCoevolutionPortfolio implements AI, AiVisualizor {
 		this.parasiteFitnesses = new HashMap<Integer, Double>();
 		this.bestHostActions = new ArrayList<List<Action>>();
 		this.bestParasiteActions = new ArrayList<List<Action>>();
-		this.bestParasiteSmartActions = new ArrayList<List<SmartAction>>();
+		this.championParasiteBehaviourActions = new ArrayList<List<BehaviourActionsPair>>();
 //		this.table = new SharedStateTable();
 //		this.newcomers = new ArrayList<Genome>();
 //		this.useHistory = useHistory;
@@ -104,10 +106,9 @@ public class OnlineCoevolutionPortfolio implements AI, AiVisualizor {
 		if (actions.isEmpty()) {
 			search(state);			
 			// Wait for keypress
-			if(stepped) {
-				Scanner s=new Scanner(System.in);
-				s.nextLine();
-				s.close();
+			if(stepped) {				
+				Scanner scanner = new Scanner(System.in);		
+				scanner.findInLine("\n");
 			}		
 		}
 			
@@ -159,26 +160,36 @@ public class OnlineCoevolutionPortfolio implements AI, AiVisualizor {
 			hostFitnesses.put(g, hostPopulation.get(0).fitness());
 			parasiteFitnesses.put(g, parasitePopulation.get(0).fitness());
 			bestHostActions.add(clone(hostPopulation.get(0).actions));
-			bestParasiteSmartActions.add(cloneSmart(parasitePopulation.get(0).actions));
+			
 			// Extract actions from parasite champion's SmartActions
-			/*
 			clone.imitate(state);
+			List<BehaviourActionsPair> baPairs = new ArrayList<BehaviourActionsPair>();
 			List<Action> parasiteActions = new ArrayList<Action>();
-			boolean isPlayer1 = clone.p1Turn;
+			boolean isPlayer1 = !clone.p1Turn;
 			for(int i = 0; i < championParasite.actions.size() && clone.APLeft > 0 && !clone.isTerminal; ++i) {
 				SmartAction sa = championParasite.actions.get(i);
-				sa.InitActions(clone, isPlayer1);
+				sa.InitActions(clone, isPlayer1);				
+				baPairs.add(sa.updateStateAndResetWithPair(clone));
+				parasiteActions.addAll(baPairs.get(i).actions);
 				
-				for(Action a = sa.Next(clone, clone.p1Turn); sa.HasNext() && clone.APLeft > 0 && !clone.isTerminal; a = sa.Next(clone, clone.p1Turn)) {
-					clone.update(a);
-					parasiteActions.add(a);
-				}
-				sa.Reset();
 			}
-			bestParasiteActions.add(parasiteActions);		
-			*/
+			bestParasiteActions.add(parasiteActions);
+			
 			
 		}
+		
+		// Save behaviour-action pair for final champion
+		clone.imitate(state);
+		List<BehaviourActionsPair> baPairs = new ArrayList<BehaviourActionsPair>();
+		boolean isPlayer1 = !clone.p1Turn;		
+		for(int i = 0; i < championParasite.actions.size() && clone.APLeft > 0 && !clone.isTerminal; ++i) {
+			SmartAction sa = championParasite.actions.get(i);
+			sa.InitActions(clone, isPlayer1);				
+			baPairs.add(sa.updateStateAndResetWithPair(clone));
+			
+		}
+		championParasiteBehaviourActions.add(baPairs);
+		
 		double end = thx.getCurrentThreadCpuTime() / 1e6;
 //		long endSystem = System.currentTimeMillis();
 //		System.out.println(Thread.currentThread().getName() + " RHCA real cpu time: " + (end - start) + " system time: " + (endSystem - startSystem));
