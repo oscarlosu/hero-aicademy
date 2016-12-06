@@ -29,9 +29,10 @@ public class Experiment {
 	public static int gamesToPlay = 1;
 	
 	public static boolean useThreads = false;
-	public static boolean enableGfx = true;
+	public static boolean enableGfx = false;
 	public static boolean saveToFile = false;
-	public static boolean stepped = true;
+	public static boolean saveStats = false;
+	public static boolean stepped = false;
 	
 	public static void main(String[] args) {
 		GameState.RANDOMNESS = true;
@@ -146,11 +147,11 @@ public class Experiment {
 			
 			// Init players
 			// Online Evolution
-			AI p1 = new OnlineEvolution(true, 100, 0.1, 0.5, budget, new HeuristicEvaluator(false), stepped);	
+			AI p1 = new OnlineEvolution(true, 100, 0.1, 0.5, budget, new HeuristicEvaluator(false), stepped, saveStats || enableGfx);	
 			((OnlineEvolution)p1).setSeed(seed);
 			// RHCA
 			//100, 30
-			AI p2 = new OnlineCoevolutionPortfolio(100, 30, 0.3, budget, new HeuristicEvaluator(false), stepped);
+			AI p2 = new OnlineCoevolutionPortfolio(100, 30, 0.3, budget, new HeuristicEvaluator(false), stepped, saveStats || enableGfx);
 			((OnlineCoevolutionPortfolio)p2).setSeed(seed);
 			
 			// Init game			

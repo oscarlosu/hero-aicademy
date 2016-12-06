@@ -57,7 +57,7 @@ public class OnlineIslandEvolution implements AI, AiVisualizor {
 		System.out.println("Processors: " + processors);
 		this.executor = Executors.newFixedThreadPool(processors);
 		for(int i=0; i < processors; i++) {
-			RollingThread thread = new RollingThread(new OnlineEvolution(useHistory, popSize, mutRate, killRate, budget, evaluator.copy(), false), new GameState(null), table);
+			RollingThread thread = new RollingThread(new OnlineEvolution(useHistory, popSize, mutRate, killRate, budget, evaluator.copy(), false, true), new GameState(null), table);
 			threads.add(thread);
 		}
 		if (threads.size() > 1){

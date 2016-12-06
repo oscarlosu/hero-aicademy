@@ -62,7 +62,9 @@ public class OnlineCoevolutionPortfolio implements AI, AiVisualizor {
 	
 	private double totalG = 0;
 	
-	public OnlineCoevolutionPortfolio(int popSize, int evalSubPopSize, double mutRate, int budget, IStateEvaluator evaluator, boolean stepped) {
+	private boolean saveStats;
+	
+	public OnlineCoevolutionPortfolio(int popSize, int evalSubPopSize, double mutRate, int budget, IStateEvaluator evaluator, boolean stepped, boolean saveStats) {
 		super();
 		this.popSize = popSize;
 		this.mutRate = mutRate;
@@ -84,6 +86,7 @@ public class OnlineCoevolutionPortfolio implements AI, AiVisualizor {
 //		this.newcomers = new ArrayList<Genome>();
 //		this.useHistory = useHistory;
 		this.stepped = stepped;
+		this.saveStats = saveStats;
 		
 		championHostFitnesses = new ArrayList<Double>();
 		championParasiteFitnesses = new ArrayList<Double>();
@@ -151,51 +154,59 @@ public class OnlineCoevolutionPortfolio implements AI, AiVisualizor {
 			reproduceSmart(parasitePopulation);
 			
 			// TODO: Only if needed?!
-			if(championHost == null || hostPopulation.get(0) != championHost) {
-				championHost = hostPopulation.get(0);
-				championHostFindGen = g;
+			if(saveStats) {
+				if(championHost == null || hostPopulation.get(0) != championHost) {
+					championHost = hostPopulation.get(0);
+					championHostFindGen = g;
+				}
+				if(championParasite == null || parasitePopulation.get(0) != championParasite) {
+					championParasite = parasitePopulation.get(0);
+					championParasiteFindGen = g;
+				}
+				hostFitnesses.put(g, hostPopulation.get(0).fitness());
+				parasiteFitnesses.put(g, parasitePopulation.get(0).fitness());
+				bestHostActions.add(clone(hostPopulation.get(0).actions));
+				
+				// Extract actions from parasite champion's SmartActions
+				clone.imitate(state);
+				List<BehaviourActionsPair> baPairs = new ArrayList<BehaviourActionsPair>();
+				List<Action> parasiteActions = new ArrayList<Action>();
+				boolean isPlayer1 = !clone.p1Turn;
+				for(int i = 0; i < championParasite.actions.size() && clone.APLeft > 0 && !clone.isTerminal; ++i) {
+					SmartAction sa = championParasite.actions.get(i);
+					sa.InitActions(clone, isPlayer1);				
+					baPairs.add(sa.updateStateAndResetWithPair(clone));
+					parasiteActions.addAll(baPairs.get(i).actions);
+					
+				}
+				bestParasiteActions.add(parasiteActions);
 			}
-			if(championParasite == null || parasitePopulation.get(0) != championParasite) {
-				championParasite = parasitePopulation.get(0);
-				championParasiteFindGen = g;
-			}
-			hostFitnesses.put(g, hostPopulation.get(0).fitness());
-			parasiteFitnesses.put(g, parasitePopulation.get(0).fitness());
-			bestHostActions.add(clone(hostPopulation.get(0).actions));
 			
-			// Extract actions from parasite champion's SmartActions
+			
+			
+		}
+		
+		
+		if(saveStats) {
+			// Save behaviour-action pair for final champion
 			clone.imitate(state);
 			List<BehaviourActionsPair> baPairs = new ArrayList<BehaviourActionsPair>();
-			List<Action> parasiteActions = new ArrayList<Action>();
-			boolean isPlayer1 = !clone.p1Turn;
+			boolean isPlayer1 = !clone.p1Turn;		
 			for(int i = 0; i < championParasite.actions.size() && clone.APLeft > 0 && !clone.isTerminal; ++i) {
 				SmartAction sa = championParasite.actions.get(i);
 				sa.InitActions(clone, isPlayer1);				
 				baPairs.add(sa.updateStateAndResetWithPair(clone));
-				parasiteActions.addAll(baPairs.get(i).actions);
 				
 			}
-			bestParasiteActions.add(parasiteActions);
+			championParasiteBehaviourActions.add(baPairs);
 			
-			
-		}
-
-		// Save behaviour-action pair for final champion
-		clone.imitate(state);
-		List<BehaviourActionsPair> baPairs = new ArrayList<BehaviourActionsPair>();
-		boolean isPlayer1 = !clone.p1Turn;		
-		for(int i = 0; i < championParasite.actions.size() && clone.APLeft > 0 && !clone.isTerminal; ++i) {
-			SmartAction sa = championParasite.actions.get(i);
-			sa.InitActions(clone, isPlayer1);				
-			baPairs.add(sa.updateStateAndResetWithPair(clone));
-			
-		}
-		championParasiteBehaviourActions.add(baPairs);
-
-		totalG += g;
+			totalG += g;
 			System.out.println("g: " + g + " avrg: " + (double)totalG / generations.size());
+		}
+
+		
 			
-		double end = thx.getCurrentThreadCpuTime() / 1e6;
+//		double end = thx.getCurrentThreadCpuTime() / 1e6;
 //		long endSystem = System.currentTimeMillis();
 //		System.out.println(Thread.currentThread().getName() + " RHCA real cpu time: " + (end - start) + " system time: " + (endSystem - startSystem));
 		
@@ -213,12 +224,14 @@ public class OnlineCoevolutionPortfolio implements AI, AiVisualizor {
 		
 		actions = hostPopulation.get(0).actions;
 		
-		generations.add((double)g);
-		bestVisits.add((double)(hostPopulation.get(0).visits));
-		sumChampionHostFindGen += championHostFindGen;
-		sumChampionParasiteFindGen += championParasiteFindGen;
-		championHostFitnesses.add(hostPopulation.get(0).fitness());
-		championParasiteFitnesses.add(parasitePopulation.get(0).fitness());
+		if(saveStats) {
+			generations.add((double)g);
+			bestVisits.add((double)(hostPopulation.get(0).visits));
+			sumChampionHostFindGen += championHostFindGen;
+			sumChampionParasiteFindGen += championParasiteFindGen;
+			championHostFitnesses.add(hostPopulation.get(0).fitness());
+			championParasiteFitnesses.add(parasitePopulation.get(0).fitness());
+		}
 	}
 
 	private void reproduce(GameState state, List<Genome> pop) {
@@ -351,11 +364,11 @@ public class OnlineCoevolutionPortfolio implements AI, AiVisualizor {
 	@Override
 	public AI copy() {
 		if (visualizer!=null){
-			OnlineCoevolutionPortfolio evo = new OnlineCoevolutionPortfolio(popSize, evalSubPopSize, mutRate, budget, evaluator.copy(), stepped);
+			OnlineCoevolutionPortfolio evo = new OnlineCoevolutionPortfolio(popSize, evalSubPopSize, mutRate, budget, evaluator.copy(), stepped, saveStats);
 			return evo;
 		}
 		
-		return new OnlineCoevolutionPortfolio(popSize, evalSubPopSize, mutRate, budget, evaluator.copy(), stepped);
+		return new OnlineCoevolutionPortfolio(popSize, evalSubPopSize, mutRate, budget, evaluator.copy(), stepped, saveStats);
 	}
 
 	@Override

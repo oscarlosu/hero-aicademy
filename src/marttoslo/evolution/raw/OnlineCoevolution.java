@@ -56,7 +56,9 @@ public class OnlineCoevolution implements AI, AiVisualizor {
 	private boolean stepped;
 	private long seed = System.currentTimeMillis();
 	
-	public OnlineCoevolution(int popSize, int evalSubPopSize, double mutRate, int budget, IStateEvaluator evaluator, boolean stepped) {
+	private boolean saveStats;
+	
+	public OnlineCoevolution(int popSize, int evalSubPopSize, double mutRate, int budget, IStateEvaluator evaluator, boolean stepped, boolean saveStats) {
 		super();
 		this.popSize = popSize;
 		this.mutRate = mutRate;
@@ -77,6 +79,7 @@ public class OnlineCoevolution implements AI, AiVisualizor {
 //		this.newcomers = new ArrayList<Genome>();
 //		this.useHistory = useHistory;
 		this.stepped = stepped;
+		this.saveStats = saveStats;
 		
 		championHostFitnesses = new ArrayList<Double>();
 		championParasiteFitnesses = new ArrayList<Double>();
@@ -162,18 +165,21 @@ public class OnlineCoevolution implements AI, AiVisualizor {
 			reproduce(clone, parasitePopulation);
 			
 			// TODO: Only if needed?!
-			hostFitnesses.put(g, hostPopulation.get(0).fitness());
-			parasiteFitnesses.put(g, parasitePopulation.get(0).fitness());
-			bestHostActions.add(clone(hostPopulation.get(0).actions));
-			bestParasiteActions.add(clone(parasitePopulation.get(0).actions));
-			if(championHost == null || hostPopulation.get(0) != championHost) {
-				championHost = hostPopulation.get(0);
-				championHostFindGen = g;
+			if(saveStats) {
+				hostFitnesses.put(g, hostPopulation.get(0).fitness());
+				parasiteFitnesses.put(g, parasitePopulation.get(0).fitness());
+				bestHostActions.add(clone(hostPopulation.get(0).actions));
+				bestParasiteActions.add(clone(parasitePopulation.get(0).actions));
+				if(championHost == null || hostPopulation.get(0) != championHost) {
+					championHost = hostPopulation.get(0);
+					championHostFindGen = g;
+				}
+				if(championParasite == null || parasitePopulation.get(0) != championParasite) {
+					championParasite = parasitePopulation.get(0);
+					championParasiteFindGen = g;
+				}
 			}
-			if(championParasite == null || parasitePopulation.get(0) != championParasite) {
-				championParasite = parasitePopulation.get(0);
-				championParasiteFindGen = g;
-			}
+			
 			
 		}
 		double end = thx.getCurrentThreadCpuTime() / 1e6;
@@ -193,13 +199,14 @@ public class OnlineCoevolution implements AI, AiVisualizor {
 		}
 		
 		actions = hostPopulation.get(0).actions;
-		
-		generations.add((double)g);
-		bestVisits.add((double)(hostPopulation.get(0).visits));
-		sumChampionHostFindGen += championHostFindGen;
-		sumChampionParasiteFindGen += championParasiteFindGen;
-		championHostFitnesses.add(hostPopulation.get(0).fitness());
-		championParasiteFitnesses.add(parasitePopulation.get(0).fitness());
+		if(saveStats) {
+			generations.add((double)g);
+			bestVisits.add((double)(hostPopulation.get(0).visits));
+			sumChampionHostFindGen += championHostFindGen;
+			sumChampionParasiteFindGen += championParasiteFindGen;
+			championHostFitnesses.add(hostPopulation.get(0).fitness());
+			championParasiteFitnesses.add(parasitePopulation.get(0).fitness());
+		}
 	}
 
 	private void reproduce(GameState state, List<Genome> sortedPopulation) {
@@ -295,11 +302,11 @@ public class OnlineCoevolution implements AI, AiVisualizor {
 	@Override
 	public AI copy() {
 		if (visualizer!=null){
-			OnlineCoevolution evo = new OnlineCoevolution(popSize, evalSubPopSize, mutRate, budget, evaluator.copy(), stepped);
+			OnlineCoevolution evo = new OnlineCoevolution(popSize, evalSubPopSize, mutRate, budget, evaluator.copy(), stepped, saveStats);
 			return evo;
 		}
 		
-		return new OnlineCoevolution(popSize, evalSubPopSize, mutRate, budget, evaluator.copy(), stepped);
+		return new OnlineCoevolution(popSize, evalSubPopSize, mutRate, budget, evaluator.copy(), stepped, saveStats);
 	}
 
 	@Override

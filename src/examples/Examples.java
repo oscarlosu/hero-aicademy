@@ -54,12 +54,12 @@ public class Examples {
 		//AI p2 = new GreedyTurnAI(new HeuristicEvaluator(false), budget);
 		
 		// Online Evolution
-		AI p1 = new OnlineEvolution(true, 100, 0.1, 0.5, budget, new HeuristicEvaluator(false), stepped);	
+		AI p1 = new OnlineEvolution(true, 100, 0.1, 0.5, budget, new HeuristicEvaluator(false), stepped, true);	
 		if(setSeed) {
 			((OnlineEvolution)p1).setSeed(seed);
 		}
 		// RHCA
-		AI p2 = new OnlineCoevolution(100, 30, 0.3, budget, new HeuristicEvaluator(false), stepped);
+		AI p2 = new OnlineCoevolution(100, 30, 0.3, budget, new HeuristicEvaluator(false), stepped, true);
 		if(setSeed) {
 			((OnlineCoevolution)p2).setSeed(seed);
 		}

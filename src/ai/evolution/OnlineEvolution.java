@@ -51,7 +51,9 @@ public class OnlineEvolution implements AI, AiVisualizor {
 	private boolean stepped;
 	private long seed = System.currentTimeMillis();
 	
-	public OnlineEvolution(boolean useHistory, int popSize, double mutRate, double killRate, int budget, IStateEvaluator evaluator, boolean stepped) {
+	private boolean saveStats;
+	
+	public OnlineEvolution(boolean useHistory, int popSize, double mutRate, double killRate, int budget, IStateEvaluator evaluator, boolean stepped, boolean saveStats) {
 		super();
 		this.popSize = popSize;
 		this.mutRate = mutRate;
@@ -70,6 +72,7 @@ public class OnlineEvolution implements AI, AiVisualizor {
 		this.useHistory = useHistory;
 		
 		this.stepped = stepped;
+		this.saveStats = saveStats;
 		championFitnesses = new ArrayList<Double>();
 	}
 	
@@ -170,12 +173,14 @@ public class OnlineEvolution implements AI, AiVisualizor {
 			takeinNewcomers();
 			
 			// TODO: Only if needed?!
-			fitnesses.put(g, pop.get(0).fitness());
-			bestActions.add(clone(pop.get(0).actions));
-			if(champion == null || pop.get(0) != champion) {
-				champion = pop.get(0);
-				championFindGen = g;
-			}
+			if(saveStats) {
+				fitnesses.put(g, pop.get(0).fitness());
+				bestActions.add(clone(pop.get(0).actions));
+				if(champion == null || pop.get(0) != champion) {
+					champion = pop.get(0);
+					championFindGen = g;
+				}
+			}			
 			
 		}
 		
@@ -200,10 +205,12 @@ public class OnlineEvolution implements AI, AiVisualizor {
 		
 		actions = pop.get(0).actions;
 		
-		generations.add((double)g);
-		bestVisits.add((double)(pop.get(0).visits));
-		sumChampionFindGen += championFindGen;
-		championFitnesses.add(pop.get(0).fitness());
+		if(saveStats) {
+			generations.add((double)g);
+			bestVisits.add((double)(pop.get(0).visits));
+			sumChampionFindGen += championFindGen;
+			championFitnesses.add(pop.get(0).fitness());
+		}		
 
 	}
 	
@@ -281,11 +288,11 @@ public class OnlineEvolution implements AI, AiVisualizor {
 	@Override
 	public AI copy() {
 		if (visualizor!=null){
-			OnlineEvolution evo = new OnlineEvolution(useHistory, popSize, mutRate, killRate, budget, evaluator.copy(), stepped);
+			OnlineEvolution evo = new OnlineEvolution(useHistory, popSize, mutRate, killRate, budget, evaluator.copy(), stepped, saveStats);
 			return evo;
 		}
 		
-		return new OnlineEvolution(useHistory, popSize, mutRate, killRate, budget, evaluator.copy(), stepped);
+		return new OnlineEvolution(useHistory, popSize, mutRate, killRate, budget, evaluator.copy(), stepped, saveStats);
 		
 	}
 

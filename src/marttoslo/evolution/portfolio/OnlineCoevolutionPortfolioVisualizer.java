@@ -105,7 +105,7 @@ public class OnlineCoevolutionPortfolioVisualizer extends JComponent implements 
 
 			repaint();
 			ui.repaint();
-			Thread.sleep(3000);			
+			Thread.sleep(20);			
 			
 		} catch (InterruptedException e) {
 			e.printStackTrace();
