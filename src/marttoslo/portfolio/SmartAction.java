@@ -17,7 +17,10 @@ public class SmartAction extends Action {
 		this.behaviourType = behaviourType;
 	}
 	
+	
 	public void InitActions(GameState gameState, boolean isPlayer1) {
+		Reset();
+		//System.out.println("INIT " + isPlayer1);
 		actions = PortfolioController.GetActions(gameState, isPlayer1, behaviourType);
 	}
 	
@@ -36,7 +39,10 @@ public class SmartAction extends Action {
 	}
 	
 	public boolean HasNext() {
-		return (actions != null && index < actions.size());
+		if (actions != null)
+			if (index < actions.size())
+				return true;
+		return false;
 	}
 	
 	public void Reset() {
@@ -48,7 +54,9 @@ public class SmartAction extends Action {
 		final boolean p1Turn = state.p1Turn;
 		InitActions(state, p1Turn);
 		while (!state.isTerminal && p1Turn == state.p1Turn && HasNext()) {
-			state.update(Next(state, p1Turn));
+			Action nextAction = Next(state, p1Turn);
+			//System.out.println("Executing behaviour : " + behaviourType + "    -    ACTION: " + nextAction);
+			state.update(nextAction);
 		}
 		Reset();
 	}

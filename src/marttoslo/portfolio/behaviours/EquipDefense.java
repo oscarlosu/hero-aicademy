@@ -6,8 +6,9 @@ import action.Action;
 import action.DropAction;
 import game.GameState;
 import marttoslo.heuristics.HeuristicEvaluator;
+import marttoslo.portfolio.PortfolioController;
+import marttoslo.portfolio.PortfolioController.BehaviourType;
 import model.Card;
-import model.CardSet;
 import model.Unit;
 
 public class EquipDefense extends Behaviour {
@@ -17,36 +18,25 @@ public class EquipDefense extends Behaviour {
 	};
 	private Card[] itemsToEquip = new Card[] {Card.SHINING_HELM, Card.DRAGONSCALE};
 	
+	private BehaviourType fallbackBehaviour;
+	public EquipDefense(BehaviourType fallback) {
+		fallbackBehaviour = fallback;
+	}
+	
 	@Override
 	public ArrayList<Action> GetActions(boolean isPlayer1, GameState gameState) {
 		ArrayList<Action> actions = new ArrayList<Action>();
-		boolean hasSword = false;
-		CardSet hand = null;
-		Card itemToEquip = null;
-		if (isPlayer1)
-			hand = gameState.p1Hand;
-		else 
-			hand = gameState.p2Hand;
-		for (Card item : itemsToEquip) {
-			for (int i : hand.cards) {
-				if (hand.get(i) == itemToEquip) {
-					itemToEquip = item;
-					break;
-				}
-			}
-			if (itemToEquip != null)
-				break;
-		}
+		ArrayList<Card> equipment = gameState.GetCardsFromHand(isPlayer1, itemsToEquip);
+		if (equipment.size() == 0)
+			return PortfolioController.GetActions(gameState, isPlayer1, fallbackBehaviour);
+		Card itemToEquip = equipment.get(PortfolioController.random.nextInt(equipment.size()));
 		
-		if (!hasSword) 
-			return fallbackBehaviour.GetActions(isPlayer1, gameState);
-
 		Unit theBest = null;
 		HeuristicEvaluator evaluator = new HeuristicEvaluator(false);
 		for (Card unit : priotiizedListOfUnits) {
 			//Get all units on board
 			ArrayList<Unit> units = new ArrayList<Unit>();
-			units = gameState.GetAllUnitsOfType(isPlayer1, unit);
+			units = gameState.GetAllUnitsOfType(isPlayer1, false, unit);
 
 			if (units.size() == 0) {
 				continue;
@@ -62,7 +52,7 @@ public class EquipDefense extends Behaviour {
 		}
 		
 		if (theBest == null)
-			return fallbackBehaviour.GetActions(isPlayer1, gameState);
+			return PortfolioController.GetActions(gameState, isPlayer1, fallbackBehaviour);
 		
 		actions.add(new DropAction(itemToEquip, gameState.GetUnitPosition(theBest)));
 		return actions;

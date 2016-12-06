@@ -80,9 +80,9 @@ public class OnlineCoevolutionPortfolioVisualizer extends JComponent implements 
 				}
 				if (rolling.bestHostActions.size() > gen)
 				{
-					List<Action> bestHost = rolling.bestHostActions.get(gen);
-					List<Action> bestParasite = rolling.bestParasiteActions.get(gen);
-					ui.setActionLayer(bestHost, bestParasite);
+					//List<Action> bestHost = rolling.bestHostActions.get(gen);
+					//List<Action> bestParasite = rolling.bestParasiteActions.get(gen);
+					//ui.setActionLayer(bestHost, bestParasite);
 				}
 					
 				if (!control){

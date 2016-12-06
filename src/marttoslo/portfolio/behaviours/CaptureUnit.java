@@ -5,21 +5,27 @@ import java.util.ArrayList;
 import action.Action;
 import game.GameState;
 import marttoslo.helpers.BehaviourHelper;
+import marttoslo.portfolio.PortfolioController;
+import marttoslo.portfolio.PortfolioController.BehaviourType;
 import model.Card;
 import model.Unit;
 
 public class CaptureUnit extends Behaviour {
-
+	
+	private BehaviourType fallbackBehaviour;
+	public CaptureUnit(BehaviourType fallback) {
+		fallbackBehaviour = fallback;
+	}
 	
 	@Override
 	public ArrayList<Action> GetActions(boolean isPlayer1, GameState gameState) {
 		ArrayList<Action> actions = new ArrayList<Action>();
 		ArrayList<Unit> enemyUnits = BehaviourHelper.GetDeadUnits(gameState, !isPlayer1);
 		if (enemyUnits.size() == 0) 
-			return fallbackBehaviour.GetActions(isPlayer1, gameState);
-		ArrayList<Unit> friendlyUnits = gameState.GetAllUnitsOfType(isPlayer1, Card.ARCHER, Card.WIZARD, Card.NINJA, Card.KNIGHT);
+			return PortfolioController.GetActions(gameState, isPlayer1, fallbackBehaviour);
+		ArrayList<Unit> friendlyUnits = gameState.GetAllUnitsOfType(isPlayer1, false, Card.ARCHER, Card.WIZARD, Card.NINJA, Card.KNIGHT);
 		if (friendlyUnits.size() == 0)
-			return fallbackBehaviour.GetActions(isPlayer1, gameState);
+			return PortfolioController.GetActions(gameState, isPlayer1, fallbackBehaviour);
 		
 		int bestApUsed = Integer.MAX_VALUE;
 		Unit closestUnit = null;
@@ -38,10 +44,9 @@ public class CaptureUnit extends Behaviour {
 		}
 		
 		if (bestApUsed > gameState.APLeft)
-			return fallbackBehaviour.GetActions(isPlayer1, gameState);
+			return PortfolioController.GetActions(gameState, isPlayer1, fallbackBehaviour);
 		
-		actions.addAll(BehaviourHelper.MoveTo(gameState, closestUnit, gameState.GetUnitPosition(selectedDeadUnit), gameState.APLeft));
-		
+		actions.addAll(BehaviourHelper.MoveTo(gameState, closestUnit, gameState.GetUnitPosition(closestUnit), gameState.GetUnitPosition(selectedDeadUnit), gameState.APLeft));
 		return actions;
 	}
 

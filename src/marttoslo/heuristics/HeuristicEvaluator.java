@@ -88,6 +88,7 @@ public class HeuristicEvaluator implements IStateEvaluator {
 	
 	public HeuristicEvaluator(boolean winVal) {
 		this.winVal = winVal;
+		Parameters = new HashMap<ParameterName, Double>();
 		this.p1Healers = new ArrayList<Position>();
 		this.p2Healers = new ArrayList<Position>();
 		

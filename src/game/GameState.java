@@ -293,11 +293,13 @@ public class GameState {
 	}
 
 	public void update(List<Action> actions) {
+		ClearCache();
 		for (final Action action : actions)
 			update(action);
 	}
 
 	public void update(Action action) {
+		ClearCache();
 
 		try {
 			chainTargets.clear();
@@ -1321,21 +1323,39 @@ public class GameState {
 		}
 	}
 	
-	public ArrayList<Unit> GetAllUnitsOfType(boolean p1Units, Card... types) {
+	public ArrayList<Unit> GetAllUnitsOfType(boolean p1Units, boolean includeDead, Card... types) {
 		if (unitList.isEmpty())
 			CacheUnits();
 		ArrayList<Unit> returnValues = new ArrayList<Unit>();
 		for (Unit unit : unitList) {
-			if (Arrays.asList(types).contains(unit.unitClass.card) && unit.p1Owner == p1Units) 
+			if (Arrays.asList(types).contains(unit.unitClass.card) && unit.p1Owner == p1Units) {
+				if (unit.hp == 0 && !includeDead)
+					continue;
 				returnValues.add(unit);
+			}
 		}
 		return returnValues;
 	}
 	
-	public ArrayList<Unit> GetAllUnits(boolean p1Units) {
+	public ArrayList<Unit> GetAllUnits() {
 		if (unitList.isEmpty())
 			CacheUnits();
 		return unitList;
+	}
+	
+	public ArrayList<Unit> GetAllUnitsFromTeam(boolean p1Units) {
+		if (unitList.isEmpty())
+			CacheUnits();
+		ArrayList<Unit> returnValues = new ArrayList<Unit>();
+		for (Unit unit : unitList) {
+			if(unit.unitClass.card == Card.CRYSTAL)
+				continue;
+			if (unit.p1Owner && p1Units)
+				returnValues.add(unit);
+			else if (!unit.p1Owner && !p1Units)
+				returnValues.add(unit);
+		}
+		return returnValues;
 	}
 	
 	public Position GetUnitPosition(Unit unit) {
@@ -1359,6 +1379,8 @@ public class GameState {
 	}
 	
 	private void CacheUnits() {
+		//System.out.println("CACHCHES");
+		unitPositions = new HashMap<Unit, Position>();
 		for (int x = 0; x < map.width; x++)
 			for (int y = 0; y < map.height; y++)
 				if (units[x][y] != null) {
@@ -1367,5 +1389,39 @@ public class GameState {
 					unitPositions.put(units[x][y], unitPosition);
 				}
 	}
+	
+	public ArrayList<Card> GetCardsFromHand(boolean isPlayer1, Card...cardTypes) {
+		List<Card> types = Arrays.asList(cardTypes);
+		ArrayList<Card> returnValues = new ArrayList<Card>();
+		CardSet hand = null;
+		hand = (isPlayer1) ? p1Hand : p2Hand;
+		for (int i = 0; i < hand.size; i++) {
+			Card card = hand.get(i);
+			if (types.contains(card))
+				returnValues.add(card);
+		}
+		return returnValues;
+	}
+	
+	public ArrayList<Position> GetSquarePositions(SquareType type) {
+		ArrayList<Position> positions = new ArrayList<Position>();
+		for (int x = 0; x < map.width; x++)
+			for (int y = 0; y < map.height; y++)
+				if (map.squares[x][y] == type) {
+					positions.add(new Position(x, y));
+				}
+		return positions;
+	}
 
+	public void DebugUnitpositions() {
+		System.out.print("DEBUG ");
+		for (Unit u : unitPositions.keySet()) {
+			System.out.print(unitPositions.get(u) + " - ");
+		}
+	}
+	
+	public void ClearCache() {
+		unitList = new ArrayList<Unit>();
+		unitPositions = new HashMap<Unit, Position>();
+	}
 }

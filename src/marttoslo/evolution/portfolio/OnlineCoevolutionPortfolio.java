@@ -124,9 +124,6 @@ public class OnlineCoevolutionPortfolio implements AI, AiVisualizor {
 		double start = thx.getCurrentThreadCpuTime() / 1e6;
 //		long startSystem = System.currentTimeMillis();
 		
-		
-		
-		
 		hostFitnesses.clear();
 		parasiteFitnesses.clear();
 		bestHostActions.clear();
@@ -136,9 +133,7 @@ public class OnlineCoevolutionPortfolio implements AI, AiVisualizor {
 		clone.imitate(state);
 		initPopulation(hostPopulation, clone);
 		initSmartPopulation(parasitePopulation);
-		
-		
-		
+	
 		int g = 0;
 		clone.imitate(state);
 		while (thx.getCurrentThreadCpuTime() / 1e6 < start + budget) {
@@ -166,12 +161,14 @@ public class OnlineCoevolutionPortfolio implements AI, AiVisualizor {
 			bestHostActions.add(clone(hostPopulation.get(0).actions));
 			bestParasiteSmartActions.add(cloneSmart(parasitePopulation.get(0).actions));
 			// Extract actions from parasite champion's SmartActions
+			/*
 			clone.imitate(state);
 			List<Action> parasiteActions = new ArrayList<Action>();
 			boolean isPlayer1 = clone.p1Turn;
 			for(int i = 0; i < championParasite.actions.size() && clone.APLeft > 0 && !clone.isTerminal; ++i) {
 				SmartAction sa = championParasite.actions.get(i);
 				sa.InitActions(clone, isPlayer1);
+				
 				for(Action a = sa.Next(clone, clone.p1Turn); sa.HasNext() && clone.APLeft > 0 && !clone.isTerminal; a = sa.Next(clone, clone.p1Turn)) {
 					clone.update(a);
 					parasiteActions.add(a);
@@ -179,6 +176,7 @@ public class OnlineCoevolutionPortfolio implements AI, AiVisualizor {
 				sa.Reset();
 			}
 			bestParasiteActions.add(parasiteActions);		
+			*/
 			
 		}
 		double end = thx.getCurrentThreadCpuTime() / 1e6;

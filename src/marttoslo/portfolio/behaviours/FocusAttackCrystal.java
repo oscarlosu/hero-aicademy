@@ -1,28 +1,33 @@
 package marttoslo.portfolio.behaviours;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import action.Action;
 import game.GameState;
 import marttoslo.helpers.BehaviourHelper;
+import marttoslo.portfolio.PortfolioController;
+import marttoslo.portfolio.PortfolioController.BehaviourType;
 import model.Card;
 import model.Position;
 import model.Unit;
 
 public class FocusAttackCrystal extends Behaviour {
 
+	private BehaviourType fallbackBehaviour;
+	public FocusAttackCrystal(BehaviourType fallback) {
+		fallbackBehaviour = fallback;
+	}
 	
 	@Override
 	public ArrayList<Action> GetActions(boolean isPlayer1, GameState gameState) {
 		ArrayList<Action> actions = new ArrayList<Action>();
-		ArrayList<Unit> crystals = gameState.GetAllUnitsOfType(!isPlayer1, Card.CRYSTAL);
+		ArrayList<Unit> crystals = gameState.GetAllUnitsOfType(!isPlayer1, false, Card.CRYSTAL);
 		if (crystals.size() == 0) 
-			return fallbackBehaviour.GetActions(isPlayer1, gameState);
-		ArrayList<Unit> friendlyAttackUnits = gameState.GetAllUnitsOfType(isPlayer1, Card.ARCHER, Card.WIZARD, Card.NINJA, Card.CLERIC, Card.KNIGHT);
+			return PortfolioController.GetActions(gameState, isPlayer1, fallbackBehaviour);
+		ArrayList<Unit> friendlyAttackUnits = gameState.GetAllUnitsOfType(isPlayer1, false, Card.ARCHER, Card.WIZARD, Card.NINJA, Card.CLERIC, Card.KNIGHT);
 		if (friendlyAttackUnits.size() == 0)
-			return fallbackBehaviour.GetActions(isPlayer1, gameState);
+			return PortfolioController.GetActions(gameState, isPlayer1, fallbackBehaviour);
 		
 		int bestDamage = 0;
 		int nrOfAPSpent = Integer.MAX_VALUE;
@@ -52,7 +57,6 @@ public class FocusAttackCrystal extends Behaviour {
 				}
 			}
 		}
-		
 		List<Position> assaultSquares = gameState.map.assaultSquares;
 		Unit closestUnit = null;
 		Position chosenAssaultSquare = null;
@@ -71,20 +75,21 @@ public class FocusAttackCrystal extends Behaviour {
 
 		Position crystalPosition = gameState.GetUnitPosition(crystalAttacked);
 		Position attackerPosition = gameState.GetUnitPosition(bestAttacker);
-		int actionPointsLeftToAttackAfterMoving = nrOfAPSpentOnAttack - closestDistance;
+		int actionPointsLeftToAttackAfterMoving = 0;
 
-		//If there's already a unit standing on an assaultSquare or we don't have enough action points to move one there and attack return only attack actions
-		if (closestDistance == 0 || actionPointsLeftToAttackAfterMoving <= 0) {
+		//If there's already a unit standing on an assaultSquare, we don't have enough AP or no available units return pure attack moves
+		if (closestDistance == 0 || actionPointsLeftToAttackAfterMoving <= 0 || closestUnit == null) {
 			actions.addAll(BehaviourHelper.GetAttackTargetUntilDeadAndCaptureStrategy(gameState, attackerPosition, crystalPosition, gameState.APLeft, false));
 			return actions;
 		}
 		
+		actionPointsLeftToAttackAfterMoving = nrOfAPSpentOnAttack - BehaviourHelper.DivideCeil(closestDistance, closestUnit.unitClass.speed);
 		int damageWithAssaultBonus = 0;
 		for (int i = actionPointsLeftToAttackAfterMoving; i < 0; i--) {
 			damageWithAssaultBonus += bestAttacker.damage(gameState, attackerPosition, crystalAttacked, crystalPosition) + 300;
 		}
 		if (damageWithAssaultBonus > bestDamage) {
-			actions.addAll(BehaviourHelper.MoveTo(gameState, closestUnit, chosenAssaultSquare, gameState.APLeft));
+			actions.addAll(BehaviourHelper.MoveTo(gameState, closestUnit, gameState.GetUnitPosition(closestUnit), chosenAssaultSquare, gameState.APLeft));
 		}
 
 		actions.addAll(BehaviourHelper.GetAttackTargetUntilDeadAndCaptureStrategy(gameState, attackerPosition, crystalPosition, gameState.APLeft-actions.size(), false));
