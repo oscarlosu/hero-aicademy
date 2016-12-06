@@ -19,6 +19,7 @@ import game.GameArguments;
 import game.GameState;
 import marttoslo.evolution.portfolio.OnlineCoevolutionPortfolio;
 import marttoslo.evolution.raw.OnlineCoevolution;
+import marttoslo.portfolio.PortfolioController;
 import model.DECK_SIZE;
 import pacman.game.util.IO;
 
@@ -58,6 +59,8 @@ public class Experiment {
 			resCol.collection.add(r);
 			
 			System.out.println("Game ended. Result: " + r.winnerIndex);
+			PortfolioController.PrintAllBehaviourStatistics();
+			PortfolioController.Reset();
 		}
 		
 		System.out.println("Player 1: " + p1);

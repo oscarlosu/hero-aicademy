@@ -60,6 +60,8 @@ public class OnlineCoevolutionPortfolio implements AI, AiVisualizor {
 	private boolean stepped;
 	private long seed = System.currentTimeMillis();
 	
+	private double totalG = 0;
+	
 	public OnlineCoevolutionPortfolio(int popSize, int evalSubPopSize, double mutRate, int budget, IStateEvaluator evaluator, boolean stepped) {
 		super();
 		this.popSize = popSize;
@@ -177,7 +179,7 @@ public class OnlineCoevolutionPortfolio implements AI, AiVisualizor {
 			
 			
 		}
-		
+
 		// Save behaviour-action pair for final champion
 		clone.imitate(state);
 		List<BehaviourActionsPair> baPairs = new ArrayList<BehaviourActionsPair>();
@@ -189,7 +191,10 @@ public class OnlineCoevolutionPortfolio implements AI, AiVisualizor {
 			
 		}
 		championParasiteBehaviourActions.add(baPairs);
-		
+
+		totalG += g;
+			System.out.println("g: " + g + " avrg: " + (double)totalG / generations.size());
+			
 		double end = thx.getCurrentThreadCpuTime() / 1e6;
 //		long endSystem = System.currentTimeMillis();
 //		System.out.println(Thread.currentThread().getName() + " RHCA real cpu time: " + (end - start) + " system time: " + (endSystem - startSystem));

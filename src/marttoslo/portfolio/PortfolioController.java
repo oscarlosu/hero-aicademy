@@ -1,5 +1,7 @@
 package marttoslo.portfolio;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadMXBean;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -30,8 +32,6 @@ public class PortfolioController {
 		UsePotion,
 		
 		
-		
-		
 		FinalFallback
 	}
 	
@@ -39,12 +39,27 @@ public class PortfolioController {
 	
 	private static boolean initialized;
 	private static HashMap<BehaviourType, Behaviour> behaviours = new HashMap<BehaviourType, Behaviour>();
+	private static HashMap<BehaviourType, BehaviourStatistics> behaviourStatistics = new HashMap<BehaviourType, BehaviourStatistics>();
+	
 	
 	public static ArrayList<Action> GetActions(GameState gameState, boolean isPlayer1, BehaviourType type) {
 		if (!initialized)
 			Initialize();
-		//System.out.println("PC " +isPlayer1);
-		return behaviours.get(type).GetActions(isPlayer1, gameState);
+		
+		BehaviourStatistics statistics = behaviourStatistics.get(type);
+		statistics.Run(gameState.turn);
+		//ThreadMXBean thx = ManagementFactory.getThreadMXBean();
+		//thx.setThreadCpuTimeEnabled(true);
+		//double start = thx.getCurrentThreadCpuTime() / 1e6;
+		
+		
+		ArrayList<Action> actions = behaviours.get(type).GetActions(isPlayer1, gameState);
+		
+		//double end = thx.getCurrentThreadCpuTime() / 1e6;
+		//statistics.runTime += end-start;
+		
+		
+		return actions;
 	}
 	
 	public static SmartAction GetRandomSmartAction(Random rng) {
@@ -57,7 +72,33 @@ public class PortfolioController {
 		return new SmartAction(behaviour);		
 	}
 	
+	public static BehaviourStatistics GetBehaviourStatistics(BehaviourType behaviourType) {
+		return behaviourStatistics.get(behaviourType);
+	}
+	
+	public static void PrintAllBehaviourStatistics() {
+		System.out.println("------------BEHAVIOUR STATISTICS------------");
+		for (BehaviourType type : BehaviourType.values()) {
+			BehaviourStatistics statistic = behaviourStatistics.get(type);
+			System.out.println("Behaviour: " + type.toString() +" - TotalRunCount: " + statistic.totalRunCount + " - AvrgRunTime: " + statistic.GetAverageRunTime());
+			
+		}
+		System.out.println("------------END STATISTICS------------");
+	}
+	
+	private static void InitStatistics() {
+		behaviourStatistics = new HashMap<BehaviourType, BehaviourStatistics>();
+		for (BehaviourType type : BehaviourType.values()) {
+			behaviourStatistics.put(type, new BehaviourStatistics());
+		}
+	}
+	
+	public static void Reset() {
+		InitStatistics();
+	}
+	
 	private static void Initialize() {
+		InitStatistics();
 		behaviours.put(BehaviourType.EquipScroll, new EquipScroll(BehaviourType.EquipSword));
 		behaviours.put(BehaviourType.EquipSword, new EquipSword(BehaviourType.EquipDefense));
 		behaviours.put(BehaviourType.EquipDefense, new EquipDefense(BehaviourType.HealMostValuable));
@@ -72,8 +113,6 @@ public class PortfolioController {
 		behaviours.put(BehaviourType.SpawnOffense, new SpawnOffense(BehaviourType.AdvanceUnit));
 		behaviours.put(BehaviourType.SpawnDefense, new SpawnDefense(BehaviourType.RetreatUnit));
 		behaviours.put(BehaviourType.UsePotion, new UsePotion(BehaviourType.EquipDefense));
-		
-		
 		
 
 		behaviours.put(BehaviourType.FinalFallback, new FinalFallback());
