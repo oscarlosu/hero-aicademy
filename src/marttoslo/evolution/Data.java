@@ -13,13 +13,15 @@ public class Data {
 	public static String generationsFilename = "generations";
 	public static String unsplitFitnessFilename = "championFitnessUnsplit";
 	public static String splitFitnessFilename = "championFitnessSplit";
+	public static String resultsFilename = "results";
+	public static String championFindFilename = "championFindGen";
 	
 	public static void main(String[] args) {
 		// IO already reads from myData/
-		//MergeData("24-11-2016 - 100 games budget 4", "24-11-2016 - 100 games budget 4.json");
+//		MergeData("08-12-2016 - 100 games budget 1", "08-12-2016 - 100 games budget 1.json");
 		
-		ProcessData("/24-11-2016 - 100 games budget 4/24-11-2016 - 100 games budget 4.json", 
-					"24-11-2016 - 100 games budget 4/Processed");
+		ProcessData("/08-12-2016 - 100 games budget 1/08-12-2016 - 100 games budget 1.json", 
+					"08-12-2016 - 100 games budget 1/Processed");
 		
 		System.out.println("Done!");
 	}
@@ -50,10 +52,11 @@ public class Data {
 		File folder = new File("myData/" + outputFolder);
 		folder.mkdir();
 		
-		// Win rates
-		// Crystal win vs Unit win rate
-		// Champion find generation avg (host and parasite) <- NEEDS TO BE GATHERED AGAIN
+		// Win rates (player win rates, crystal wins, unit wins)
+		saveResultData(data, outputFolder);
 		
+		// Champion find generation avg (host and parasite)
+		saveChampionFindData(data, outputFolder);
 		
 		// Generations over turns graph (RHCA and OE)	
 		saveGenerationsData(data, outputFolder);
@@ -67,7 +70,79 @@ public class Data {
 		
 	}
 	
+	public static void saveResultData(ExperimentResultsCollection data, String outputFolder) {
+		double[] rhcaWin = new double[1], oeWin = new double[1], draw = new double[1], rhcaCrystalWin = new double[1], 
+			     rhcaUnitWin = new double[1], oeCrystalWin = new double[1], oeUnitWin = new double[1];
+		
+		for(int i = 0; i < data.collection.size(); ++i) {
+			ExperimentResults matchData = data.collection.get(i);
+			if(matchData.winnerIndex == 1) {
+				// OE win
+				oeWin[0]++;
+				if(matchData.crystalWin) {
+					oeCrystalWin[0]++;
+				} else {
+					oeUnitWin[0]++;
+				}
+			} else if(matchData.winnerIndex == 2) {
+				// RHCA win
+				rhcaWin[0]++;
+				if(matchData.crystalWin) {
+					rhcaCrystalWin[0]++;
+				} else {
+					rhcaUnitWin[0]++;
+				}
+			} else {
+				// Draw
+				draw[0]++;
+			}
+		}
+		
+		String[] headers = new String[]{"rhcaWins", "oeWin", "draw", "rhcaCrystalWin", "rhcaUnitWin", "oeCrystalWin", "oeUnitWin"};
+		double[][] results = new double[][]{rhcaWin, oeWin, draw, rhcaCrystalWin, rhcaUnitWin, oeCrystalWin, oeUnitWin};
+		SaveToFile(headers, results, outputFolder + "/" + resultsFilename + ".csv");
+	}
 	
+	public static void saveChampionFindData(ExperimentResultsCollection data, String outputFolder) {
+		double[] rhca_hostChampionFindGen = new double[sampleResolution];
+		double[] rhca_parasiteChampionFindGen = new double[sampleResolution];
+		double[] oe_championFindGen = new double[sampleResolution];
+		for(int i = 0; i < data.collection.size(); ++i) {
+			ExperimentResults matchData = data.collection.get(i);
+			// RHCA
+			// Hosts
+			double[] rhca_host_normalizedMatchData = matchNormalizeData(matchData.co_championHostFindGen, sampleResolution);
+			for(int t = 0; t < sampleResolution; ++t) {
+				rhca_hostChampionFindGen[t] += rhca_host_normalizedMatchData[t];
+				// On last match, divide to get average
+				if(i == data.collection.size() - 1) {
+					rhca_hostChampionFindGen[t] /= data.collection.size();
+				}
+			}
+			// Parasites
+			double[] rhca_parasite_normalizedMatchData = matchNormalizeData(matchData.co_championParasiteFindGen, sampleResolution);
+			for(int t = 0; t < sampleResolution; ++t) {
+				rhca_parasiteChampionFindGen[t] += rhca_parasite_normalizedMatchData[t];
+				// On last match, divide to get average
+				if(i == data.collection.size() - 1) {
+					rhca_parasiteChampionFindGen[t] /= data.collection.size();
+				}
+			}
+			// OE
+			double[] oe_normalizedMatchData = matchNormalizeData(matchData.oe_championHostFindGen, sampleResolution);
+			for(int t = 0; t < sampleResolution; ++t) {
+				oe_championFindGen[t] += oe_normalizedMatchData[t];
+				// On last match, divide to get average
+				if(i == data.collection.size() - 1) {
+					oe_championFindGen[t] /= data.collection.size();
+				}
+			}
+			
+		}
+		String[] headers = new String[]{"rhca_hostChampionFindGen", "rhca_parasiteChampionFindGen", "oe_championFindGen"};
+		double[][] championFindGen = new double[][]{rhca_hostChampionFindGen, rhca_parasiteChampionFindGen, oe_championFindGen};
+		SaveToFile(headers, championFindGen, outputFolder + "/" + championFindFilename + ".csv");
+	}
 	
 	public static void saveSplitFitnessData(ExperimentResultsCollection data, String outputFolder) {
 		double[] rhca_hostFitnessWin = new double[sampleResolution];
@@ -302,4 +377,5 @@ public class Data {
 		// Save to file
 		IO.saveFile(filename, builder.toString(), false);		
 	}
+
 }
