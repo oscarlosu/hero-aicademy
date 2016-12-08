@@ -205,7 +205,6 @@ public class Game {
 				clone.imitate(state);
 				history.add(clone);
 				lastTurn = 5;
-				System.out.println(Thread.currentThread().getName() + " turn " + state.turn);
 			}
 
 		}

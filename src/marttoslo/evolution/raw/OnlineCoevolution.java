@@ -34,12 +34,12 @@ public class OnlineCoevolution implements AI, AiVisualizor {
 	
 	public List<Action> actions;
 	
-	public double sumChampionHostFindGen;
-	public int championHostFindGen;
+	public List<Double> championHostFindGen;
+	public int curr_championHostFindGen;
 	public Genome championHost;
 	public List<Double> championHostFitnesses;
-	public double sumChampionParasiteFindGen;
-	public int championParasiteFindGen;
+	public List<Double> championParasiteFindGen;
+	public int curr_championParasiteFindGen;
 	public Genome championParasite;
 	public List<Double> championParasiteFitnesses;
 	
@@ -80,6 +80,9 @@ public class OnlineCoevolution implements AI, AiVisualizor {
 //		this.useHistory = useHistory;
 		this.stepped = stepped;
 		this.saveStats = saveStats;
+		
+		championHostFindGen = new ArrayList<Double>();
+		championParasiteFindGen = new ArrayList<Double>();
 		
 		championHostFitnesses = new ArrayList<Double>();
 		championParasiteFitnesses = new ArrayList<Double>();
@@ -174,11 +177,11 @@ public class OnlineCoevolution implements AI, AiVisualizor {
 				}				
 				if(championHost == null || hostPopulation.get(0) != championHost) {
 					championHost = hostPopulation.get(0);
-					championHostFindGen = g;
+					curr_championHostFindGen = g;
 				}
 				if(championParasite == null || parasitePopulation.get(0) != championParasite) {
 					championParasite = parasitePopulation.get(0);
-					championParasiteFindGen = g;
+					curr_championParasiteFindGen = g;
 				}
 			}
 			
@@ -205,8 +208,8 @@ public class OnlineCoevolution implements AI, AiVisualizor {
 			generations.add((double)g);
 			if(visualizer != null)
 				bestVisits.add((double)(hostPopulation.get(0).visits));
-			sumChampionHostFindGen += championHostFindGen;
-			sumChampionParasiteFindGen += championParasiteFindGen;
+			championHostFindGen.add((double)curr_championHostFindGen);
+			championParasiteFindGen.add((double)curr_championParasiteFindGen);
 			championHostFitnesses.add(hostPopulation.get(0).fitness());
 			championParasiteFitnesses.add(parasitePopulation.get(0).fitness());
 		}

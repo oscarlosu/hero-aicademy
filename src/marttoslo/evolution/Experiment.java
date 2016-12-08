@@ -30,9 +30,11 @@ public class Experiment {
 	
 	public static boolean useThreads = false;
 	public static boolean enableGfx = false;
-	public static boolean saveToFile = false;
-	public static boolean saveStats = false;
+	public static boolean saveToFile = true;
+	public static boolean saveStats = true;
 	public static boolean stepped = false;
+	
+	public static String folderName = "08-12-2016 - 100 games budget 1";
 	
 	public static void main(String[] args) {
 		GameState.RANDOMNESS = true;
@@ -60,8 +62,8 @@ public class Experiment {
 			resCol.collection.add(r);
 			
 			System.out.println("Game ended. Result: " + r.winnerIndex);
-			PortfolioController.PrintAllBehaviourStatistics();
-			PortfolioController.Reset();
+//			PortfolioController.PrintAllBehaviourStatistics();
+//			PortfolioController.Reset();
 		}
 		
 		System.out.println("Player 1: " + p1);
@@ -72,7 +74,7 @@ public class Experiment {
 		System.out.println("Done!");
 		
 		if(saveToFile) {
-			resCol.SaveToFile("results_" + timestamp + ".json");
+			resCol.SaveToFile(folderName + "/" + "results_" + timestamp + ".json");
 		}
 	}
 	
@@ -151,8 +153,8 @@ public class Experiment {
 			((OnlineEvolution)p1).setSeed(seed);
 			// RHCA
 			//100, 30
-			AI p2 = new OnlineCoevolutionPortfolio(100, 30, 0.3, budget, new HeuristicEvaluator(false), stepped, saveStats || enableGfx);
-			((OnlineCoevolutionPortfolio)p2).setSeed(seed);
+			AI p2 = new OnlineCoevolution(100, 30, 0.3, budget, new HeuristicEvaluator(false), stepped, saveStats || enableGfx);
+			((OnlineCoevolution)p2).setSeed(seed);
 			
 			// Init game			
 			GameArguments gameArgs = new GameArguments(false, p1, p2, "a", DECK_SIZE.STANDARD);
@@ -171,14 +173,14 @@ public class Experiment {
 			results.crystalWin = game.state.wasCrystalWin();
 			results.unitWin = results.winnerIndex != 0 && !game.state.wasCrystalWin();
 			// Coevolution stats
-			results.co_generations.addAll(((OnlineCoevolutionPortfolio)p2).generations);
-			results.co_sumChampionHostFindGen = ((OnlineCoevolutionPortfolio)p2).sumChampionHostFindGen;
-			results.co_sumChampionParasiteFindGen = ((OnlineCoevolutionPortfolio)p2).sumChampionParasiteFindGen;
-			results.co_championHostFitnesses.addAll(((OnlineCoevolutionPortfolio)p2).championHostFitnesses);
-			results.co_championParasiteFitnesses.addAll(((OnlineCoevolutionPortfolio)p2).championParasiteFitnesses);
+			results.co_generations.addAll(((OnlineCoevolution)p2).generations);
+			results.co_championHostFindGen = ((OnlineCoevolution)p2).championHostFindGen;
+			results.co_championParasiteFindGen = ((OnlineCoevolution)p2).championParasiteFindGen;
+			results.co_championHostFitnesses.addAll(((OnlineCoevolution)p2).championHostFitnesses);
+			results.co_championParasiteFitnesses.addAll(((OnlineCoevolution)p2).championParasiteFitnesses);
 			// Online Evolution stats
 			results.oe_generations.addAll(((OnlineEvolution)p1).generations);
-			results.oe_sumChampionHostFindGen = ((OnlineEvolution)p1).sumChampionFindGen;
+			results.oe_championHostFindGen = ((OnlineEvolution)p1).championFindGen;
 			results.oe_championFitnesses.addAll(((OnlineEvolution)p1).championFitnesses);
 			
 			return results;
