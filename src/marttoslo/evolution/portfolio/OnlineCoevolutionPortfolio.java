@@ -116,8 +116,6 @@ public class OnlineCoevolutionPortfolio implements AI, AiVisualizor {
 				scanner.findInLine("\n");
 			}		
 		}
-			
-
 		//table.clear();
 		final Action next = actions.get(0);
 		actions.remove(0);		
@@ -143,7 +141,6 @@ public class OnlineCoevolutionPortfolio implements AI, AiVisualizor {
 		int g = 0;
 		clone.imitate(state);
 		while (thx.getCurrentThreadCpuTime() / 1e6 < start + budget) {
-
 			g++;
 			clone.imitate(state);
 			// Test population
@@ -177,16 +174,13 @@ public class OnlineCoevolutionPortfolio implements AI, AiVisualizor {
 					for(int i = 0; i < championParasite.actions.size() && clone.APLeft > 0 && !clone.isTerminal; ++i) {
 						SmartAction sa = championParasite.actions.get(i);
 						sa.InitActions(clone, isPlayer1);				
-						baPairs.add(sa.updateStateAndResetWithPair(clone));
+						baPairs.add(sa.updateStateAndResetWithPair(clone, isPlayer1));
 						parasiteActions.addAll(baPairs.get(i).actions);
 						
 					}
 					bestParasiteActions.add(parasiteActions);
 				}				
 			}
-			
-			
-			
 		}
 		
 		
@@ -198,7 +192,7 @@ public class OnlineCoevolutionPortfolio implements AI, AiVisualizor {
 			for(int i = 0; i < championParasite.actions.size() && clone.APLeft > 0 && !clone.isTerminal; ++i) {
 				SmartAction sa = championParasite.actions.get(i);
 				sa.InitActions(clone, isPlayer1);				
-				baPairs.add(sa.updateStateAndResetWithPair(clone));
+				baPairs.add(sa.updateStateAndResetWithPair(clone, isPlayer1));
 				
 			}
 			championParasiteBehaviourActions.add(baPairs);

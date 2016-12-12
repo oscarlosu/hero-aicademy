@@ -93,20 +93,25 @@ public class BehaviourHelper {
 		ArrayList<UnitAction> actions = new ArrayList<UnitAction>();
 		Unit attacker = gameState.units[attackerPosition.x][attackerPosition.y];
 		Unit defender = gameState.units[defenderPosition.x][defenderPosition.y];
-		
+
 		//while not in attack range and have more AP to spend, move towards attack range
 		ArrayList<UnitAction> actionsToRange = MoveUnitToRange(gameState, attacker, defenderPosition, attacker.unitClass.attack.range, actionPointsToSpend);
-		if (actionsToRange.size() == 0 && attackerPosition.distance(defenderPosition) <= attacker.unitClass.attack.range)
+	
+		if (attackerPosition.distance(defenderPosition) > attacker.unitClass.attack.range && actionsToRange.size() == 0) 
 			return actions;
+		
 		actionPointsToSpend -= actionsToRange.size();
+		if (actionPointsToSpend == 0)
+			return actions;
 		actions.addAll(actionsToRange);
+
 		
 		Position currentPosition = attackerPosition;
 		if (actionsToRange.size() > 0)
 			currentPosition = actionsToRange.get(actionsToRange.size()-1).to;
 		
 		//If unit only could move a little but still isn't in range
-		if (currentPosition.distance(defenderPosition) <= attacker.unitClass.attack.range)
+		if (currentPosition.distance(defenderPosition) > attacker.unitClass.attack.range)
 			return actions;
 		
 		//Is there action points left to attack unit?
@@ -160,9 +165,12 @@ public class BehaviourHelper {
 		ArrayList<UnitAction> actionsToRange = MoveUnitToRange(gameState, healer, targetPosition, healer.unitClass.heal.range, actionPointsToSpend);
 		
 		//If unit couldn't move at all
-		if (actionsToRange.size() == 0 && healerPosition.distance(targetPosition) <= healer.unitClass.heal.range)
+		if (actionsToRange.size() == 0 && healerPosition.distance(targetPosition) > healer.unitClass.heal.range)
 			return actions;
+		
 		actionPointsToSpend -= actionsToRange.size();
+		if (actionPointsToSpend == 0)
+			return actions;
 		actions.addAll(actionsToRange);
 		
 		Position currentPosition = healerPosition;
@@ -170,17 +178,14 @@ public class BehaviourHelper {
 			currentPosition = actionsToRange.get(actionsToRange.size()-1).to;
 		
 		//If unit only could move a little but still isn't in range
-		if (currentPosition.distance(targetPosition) <= healer.unitClass.heal.range)
+		if (currentPosition.distance(targetPosition) > healer.unitClass.heal.range)
 			return actions;
 		
-		//Is there action points left to attack unit?
-		if (actionPointsToSpend == 0) 				
-			return actions;
-		
+		//Heal target until a heal will overheal it with more than half a heal to save action points
 		int targetHp = target.hp;
 		while (actionPointsToSpend > 0) {
 			int healAmount = gameState.GetHealAmount(healer, target);
-			if (target.unitClass.maxHP - targetHp > healAmount) {
+			if (target.unitClass.maxHP - targetHp > healAmount/2) {
 				actions.add(new UnitAction(currentPosition, targetPosition, UnitActionType.HEAL));
 				actionPointsToSpend--;
 				targetHp += healAmount;
@@ -235,7 +240,7 @@ public class BehaviourHelper {
 		Position closestPosition = GetClosestPositionToPoint(gameState, availablePositions, towards);
 		
 		//If it couldn't find a spot closer to the target, only further away
-		if (from.distance(towards) < closestPosition.distance(towards))
+		if (from.distance(towards) < closestPosition.distance(towards) || from.equals(closestPosition))
 			return null;
 		return new UnitAction(from, closestPosition, UnitActionType.MOVE);
 	}
@@ -251,6 +256,7 @@ public class BehaviourHelper {
 	public static ArrayList<UnitAction> MoveUnitToRange(GameState gameState, Unit moving, Position attackSpot, int range, int actionPointsToSpend) {
 		ArrayList<UnitAction> actions = new ArrayList<UnitAction>();
 		Position currentPosition = gameState.GetUnitPosition(moving);
+
 		while(currentPosition.distance(attackSpot) > range && actionPointsToSpend > 0) {
 			int moveDistance = currentPosition.distance(attackSpot) - range;
 			int moveRange = (moveDistance < moving.unitClass.speed) ? moveDistance : moving.unitClass.speed;
@@ -258,15 +264,15 @@ public class BehaviourHelper {
 			if (newAction == null) {
 				return actions;
 			}
-			//System.out.println("Moving unit from: " + currentPosition.x + "," + currentPosition.y + " to: " + newAction.to.x + "," + newAction.to.y);
 			actions.add(newAction);
 			currentPosition = newAction.to;
 			actionPointsToSpend--;
 		}
 		
-		if (currentPosition.distance(attackSpot) > range)
+		if (currentPosition.distance(attackSpot) > range) {
 			return actions;
-		else return new ArrayList<UnitAction>();
+		}
+		else return actions;
 		
 		//TODO: Improvements: Do something in case the last move doesn't bring you in LOS of unit you want to attack
 	}
@@ -286,25 +292,22 @@ public class BehaviourHelper {
 	 * @param gameState
 	 * @param movingUnit		Unit to move
 	 * @param unitPosition		Current position of unit to move
-	 * @param maxMoveDistance	How far around the unit should the algorithm check
+	 * @param maxMoveDistance	How far the unit is allowed to move
 	 * @return
 	 */
 	public static ArrayList<Position> getAvailableMovePositions(GameState gameState, Unit movingUnit, Position unitPosition, int maxMoveDistance) {
 		if (maxMoveDistance > movingUnit.unitClass.speed) maxMoveDistance = movingUnit.unitClass.speed;
 		int speed = movingUnit.unitClass.speed - (movingUnit.unitClass.speed - maxMoveDistance);
 		ArrayList<Position> availablePositions = new ArrayList<Position>();
-		for (int x = unitPosition.x-speed; x < unitPosition.x+speed; x++) {
-			for (int y = unitPosition.y-speed; y < unitPosition.y+speed; y++) {
+		for (int x = unitPosition.x-speed; x <= unitPosition.x+speed; x++) {
+			for (int y = unitPosition.y-speed; y <= unitPosition.y+speed; y++) {
 				if (x < 0 || x >= gameState.map.width || y < 0 || y >= gameState.map.height) 
 					continue;
 				Position pos = new Position(x, y);
-				/*
-				System.out.println("CHECK POS: " + pos);
-				System.out.println("CHECK POS IN RANGE " + (pos.distance(unitPosition ) <= speed));
-				System.out.println("CHECK UNIT " + gameState.units[x][y]);
-				*/
-				if (gameState.units[x][y] == null && pos.distance(unitPosition) <= speed)
+				if (gameState.units[x][y] == null && pos.distance(unitPosition) <= speed) {
 					availablePositions.add(pos);
+					
+				}
 			}
 		}
 		return availablePositions;
@@ -368,6 +371,32 @@ public class BehaviourHelper {
 			}
 		}
 		return closestPos;
+	}
+	
+	/**
+	 * Finds two units that are closest together, one from each array
+	 * @param gameState
+	 * @param unitsA	Unit list A
+	 * @param unitsB	Unit list B
+	 * @return			index 0: best from list A - index 1: best from list B
+	 */
+	public static Unit[] GetClosestPairOfUnits(GameState gameState, ArrayList<Unit> unitsA, ArrayList<Unit> unitsB) {
+		int closestDistance = Integer.MAX_VALUE;
+		Unit bestA = null;
+		Unit bestB = null;
+		for (Unit a : unitsA) {
+			Position posA = gameState.GetUnitPosition(a);
+			for (Unit b : unitsB) {
+				Position posB = gameState.GetUnitPosition(b);
+				if (posA.distance(posB) < closestDistance) {
+					bestA = a;
+					bestB = b;
+					closestDistance = posA.distance(posB);
+				}
+			}
+		}
+		
+		return new Unit[] {bestA, bestB};
 	}
 	
 	

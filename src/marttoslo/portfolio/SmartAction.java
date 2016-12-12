@@ -57,23 +57,22 @@ public class SmartAction extends Action {
 		InitActions(state, p1Turn);
 		while (!state.isTerminal && p1Turn == state.p1Turn && HasNext()) {
 			Action nextAction = Next(state, p1Turn);
-			//System.out.println("Executing behaviour : " + behaviourType + "    -    ACTION: " + nextAction);
 			state.update(nextAction);
 		}
 		Reset();
 	}
 	
-	public BehaviourActionsPair updateStateAndResetWithPair(GameState state) {
+	public BehaviourActionsPair updateStateAndResetWithPair(GameState state, boolean isPlayer1) {
 		List<Action> actions = new ArrayList<Action>();
-		final boolean p1Turn = state.p1Turn;
-		InitActions(state, p1Turn);
-		while (!state.isTerminal && p1Turn == state.p1Turn && HasNext()) {
-			Action nextAction = Next(state, p1Turn);
-			//System.out.println("Executing behaviour : " + behaviourType + "    -    ACTION: " + nextAction);
+		InitActions(state, isPlayer1);
+		state.p1Turn = isPlayer1;
+		while (!state.isTerminal && isPlayer1 == state.p1Turn && HasNext()) {
+			Action nextAction = Next(state, isPlayer1);
 			state.update(nextAction);
 			
 			actions.add(nextAction);
 		}
+		state.p1Turn = !isPlayer1;
 		Reset();
 		
 		return new BehaviourActionsPair(behaviourType, actions);

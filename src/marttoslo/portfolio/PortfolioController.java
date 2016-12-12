@@ -1,16 +1,10 @@
 package marttoslo.portfolio;
 
-import java.lang.management.ManagementFactory;
-import java.lang.management.ThreadMXBean;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Random;
 
-import org.omg.PortableServer.POAPackage.AdapterAlreadyExists;
-
 import action.Action;
-import ai.util.ActionPruner;
 import game.GameState;
 import marttoslo.portfolio.behaviours.*;
 
@@ -22,6 +16,7 @@ public class PortfolioController {
 		FocusAttackCrystal,
 		FocusAttackAndCaptureHealer,
 		FocusAttackDPS,
+		SingleAttackClosest,
 		CaptureUnit,
 		FocusAttackLowHP,
 		HealMostValuable,
@@ -40,8 +35,7 @@ public class PortfolioController {
 	private static boolean initialized;
 	private static HashMap<BehaviourType, Behaviour> behaviours = new HashMap<BehaviourType, Behaviour>();
 	private static HashMap<BehaviourType, BehaviourStatistics> behaviourStatistics = new HashMap<BehaviourType, BehaviourStatistics>();
-	
-	
+
 	public static ArrayList<Action> GetActions(GameState gameState, boolean isPlayer1, BehaviourType type) {
 		if (!initialized)
 			Initialize();
@@ -69,7 +63,7 @@ public class PortfolioController {
 		while (behaviour == null && behaviour != BehaviourType.FinalFallback) {
 			behaviour = BehaviourType.values()[random.nextInt(BehaviourType.values().length)];
 		}
-		return new SmartAction(behaviour);		
+		return new SmartAction(behaviour);
 	}
 	
 	public static BehaviourStatistics GetBehaviourStatistics(BehaviourType behaviourType) {
@@ -105,6 +99,7 @@ public class PortfolioController {
 		behaviours.put(BehaviourType.FocusAttackCrystal, new FocusAttackCrystal(BehaviourType.FocusAttackAndCaptureHealer));
 		behaviours.put(BehaviourType.FocusAttackAndCaptureHealer, new FocusAttackHealer(BehaviourType.FocusAttackDPS));
 		behaviours.put(BehaviourType.FocusAttackDPS, new FocusAttackDPS(BehaviourType.FocusAttackLowHP));
+		behaviours.put(BehaviourType.SingleAttackClosest, new SingleAttackClosest(BehaviourType.FocusAttackAndCaptureHealer));
 		behaviours.put(BehaviourType.CaptureUnit, new CaptureUnit(BehaviourType.FocusAttackLowHP));
 		behaviours.put(BehaviourType.FocusAttackLowHP, new FocusAttackLowHP(BehaviourType.SpawnOffense));
 		behaviours.put(BehaviourType.HealMostValuable, new HealMostValuable(BehaviourType.SpawnDefense));
@@ -116,6 +111,7 @@ public class PortfolioController {
 		
 
 		behaviours.put(BehaviourType.FinalFallback, new FinalFallback());
+		
 		initialized = true;
 	}
 }

@@ -40,7 +40,7 @@ public class HealMostValuable extends Behaviour {
 				altTargets.add(unit);
 		}
 		if (targets.size() == 0) {
-			if (targets.size() == 0)
+			if (altTargets.size() == 0)
 				return PortfolioController.GetActions(gameState, isPlayer1, fallbackBehaviour);
 			else 
 				targets = altTargets;

@@ -57,6 +57,10 @@ public class FocusAttackCrystal extends Behaviour {
 				}
 			}
 		}
+		
+		if (bestAttacker == null || crystalAttacked == null)
+			return PortfolioController.GetActions(gameState, isPlayer1, fallbackBehaviour);
+		
 		List<Position> assaultSquares = gameState.map.assaultSquares;
 		Unit closestUnit = null;
 		Position chosenAssaultSquare = null;
@@ -65,7 +69,7 @@ public class FocusAttackCrystal extends Behaviour {
 		for (Position assPos : assaultSquares) {
 			for (Unit unit : friendlyAttackUnits) {
 				int distance = gameState.GetUnitPosition(unit).distance(assPos);
-				if (distance < closestDistance && unit != bestAttacker) {
+				if (distance < closestDistance && !unit.equals(bestAttacker)) {
 					closestDistance = distance;
 					chosenAssaultSquare = assPos;
 					closestUnit = unit;
@@ -75,17 +79,17 @@ public class FocusAttackCrystal extends Behaviour {
 
 		Position crystalPosition = gameState.GetUnitPosition(crystalAttacked);
 		Position attackerPosition = gameState.GetUnitPosition(bestAttacker);
-		int actionPointsLeftToAttackAfterMoving = 0;
 
 		//If there's already a unit standing on an assaultSquare, we don't have enough AP or no available units return pure attack moves
-		if (closestDistance == 0 || actionPointsLeftToAttackAfterMoving <= 0 || closestUnit == null) {
+		if (closestDistance == 0 || closestUnit == null) {
 			actions.addAll(BehaviourHelper.GetAttackTargetUntilDeadAndCaptureStrategy(gameState, attackerPosition, crystalPosition, gameState.APLeft, false));
 			return actions;
 		}
-		
+
+		int actionPointsLeftToAttackAfterMoving = 0;
 		actionPointsLeftToAttackAfterMoving = nrOfAPSpentOnAttack - BehaviourHelper.DivideCeil(closestDistance, closestUnit.unitClass.speed);
 		int damageWithAssaultBonus = 0;
-		for (int i = actionPointsLeftToAttackAfterMoving; i < 0; i--) {
+		for (int i = actionPointsLeftToAttackAfterMoving; i > 0; i--) {
 			damageWithAssaultBonus += bestAttacker.damage(gameState, attackerPosition, crystalAttacked, crystalPosition) + 300;
 		}
 		if (damageWithAssaultBonus > bestDamage) {

@@ -35,12 +35,23 @@ public class FocusAttackLowHP extends Behaviour {
 		Unit bestAttacker = bestPair[0];
 		Unit bestTarget = bestPair[1];
 
-		if (bestAttacker == null) {
+		if (bestAttacker == null || bestTarget == null) {
 			return PortfolioController.GetActions(gameState, isPlayer1, fallbackBehaviour);
 		}
 		
 		Position targetPosition = gameState.GetUnitPosition(bestTarget);
 		Position attackerPosition = gameState.GetUnitPosition(bestAttacker);
+		if (gameState.units[attackerPosition.x][attackerPosition.y] == null) {
+			for (Unit u : friendlyAttackUnits) {
+				System.out.println(u.unitClass.card);
+			}
+		}
+		if (gameState.units[targetPosition.x][targetPosition.y] == null) {
+
+			for (Unit u : enemyUnits) {
+				System.out.println(u.unitClass.card);
+			}
+		}
 		
 		actions.addAll(BehaviourHelper.GetAttackTargetUntilDeadAndCaptureStrategy(gameState, attackerPosition, targetPosition, gameState.APLeft, false));
 		

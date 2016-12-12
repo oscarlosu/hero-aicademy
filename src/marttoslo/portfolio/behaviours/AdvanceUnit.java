@@ -3,6 +3,7 @@ package marttoslo.portfolio.behaviours;
 import java.util.ArrayList;
 
 import action.Action;
+import action.UnitAction;
 import game.GameState;
 import marttoslo.helpers.BehaviourHelper;
 import marttoslo.portfolio.PortfolioController;
@@ -31,8 +32,8 @@ public class AdvanceUnit extends Behaviour {
 		int x = (isPlayer1) ? gameState.map.width-1 : 0;
 		int y = PortfolioController.random.nextInt(gameState.map.height);
 		Position moveTowards = new Position(x, y);
-		
 		Action nextAction = BehaviourHelper.MoveTowardsTarget(gameState, unitToAdvance, unitPosition, moveTowards, unitToAdvance.unitClass.speed);
+
 		//All spots are taken, so unit cannot advance
 		if (nextAction == null) 
 			return PortfolioController.GetActions(gameState, isPlayer1, fallbackBehaviour);

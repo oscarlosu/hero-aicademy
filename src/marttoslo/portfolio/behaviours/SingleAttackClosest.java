@@ -3,6 +3,8 @@ package marttoslo.portfolio.behaviours;
 import java.util.ArrayList;
 
 import action.Action;
+import action.UnitAction;
+import action.UnitActionType;
 import game.GameState;
 import marttoslo.helpers.BehaviourHelper;
 import marttoslo.portfolio.PortfolioController;
@@ -11,10 +13,10 @@ import model.Card;
 import model.Position;
 import model.Unit;
 
-public class FocusAttackDPS extends Behaviour {
+public class SingleAttackClosest extends Behaviour {
 
 	private BehaviourType fallbackBehaviour;
-	public FocusAttackDPS(BehaviourType fallback) {
+	public SingleAttackClosest(BehaviourType fallback) {
 		fallbackBehaviour = fallback;
 	}
 	
@@ -24,27 +26,12 @@ public class FocusAttackDPS extends Behaviour {
 		ArrayList<Unit> enemyUnits = gameState.GetAllUnitsFromTeam(!isPlayer1);
 		if (enemyUnits.size() == 0) 
 			return PortfolioController.GetActions(gameState, isPlayer1, fallbackBehaviour);
-		ArrayList<Unit> friendlyAttackUnits = gameState.GetAllUnitsOfType(isPlayer1, false, Card.ARCHER, Card.WIZARD, Card.NINJA);
+		ArrayList<Unit> friendlyAttackUnits = gameState.GetAllUnitsOfType(isPlayer1, false, Card.ARCHER, Card.WIZARD, Card.NINJA, Card.CLERIC, Card.KNIGHT);
 		if (friendlyAttackUnits.size() == 0)
 			return PortfolioController.GetActions(gameState, isPlayer1, fallbackBehaviour);
 		
-		//Find the the enemy that I can kill quickest, that has the biggest value
-		ArrayList<Unit> targets = new ArrayList<Unit>();
-		ArrayList<Unit> altTargets = new ArrayList<Unit>();
-		for (Unit unit : enemyUnits) {
-			if (unit.unitClass.card == Card.ARCHER ||unit.unitClass.card == Card.WIZARD || unit.unitClass.card == Card.NINJA) 
-				targets.add(unit);
-			else if (unit.unitClass.card == Card.KNIGHT)
-				altTargets.add(unit);
-		}
-		if (targets.size() == 0) {
-			if (targets.size() == 0)
-				return PortfolioController.GetActions(gameState, isPlayer1, fallbackBehaviour);
-			else 
-				targets = altTargets;
-		}
-		
-		Unit[] bestPair = BehaviourHelper.CalculateBestAttackOnTargets(gameState, friendlyAttackUnits, enemyUnits, true);
+		//Find closest pair
+		Unit[] bestPair = BehaviourHelper.GetClosestPairOfUnits(gameState, friendlyAttackUnits, enemyUnits);
 		
 		Unit bestAttacker = bestPair[0];
 		Unit bestTarget = bestPair[1];
@@ -55,9 +42,19 @@ public class FocusAttackDPS extends Behaviour {
 
 		Position targetPosition = gameState.GetUnitPosition(bestTarget);
 		Position attackerPosition = gameState.GetUnitPosition(bestAttacker);
-		actions.addAll(BehaviourHelper.GetAttackTargetUntilDeadAndCaptureStrategy(gameState, attackerPosition, targetPosition, gameState.APLeft, false));
-
-		return actions;
+		
+		if (targetPosition.distance(attackerPosition) < bestAttacker.unitClass.attack.range) {
+			actions.add(new UnitAction(attackerPosition, targetPosition, UnitActionType.ATTACK));
+			return actions;
+		}
+		
+		ArrayList<UnitAction> moveTowards = new ArrayList<UnitAction>(BehaviourHelper.MoveUnitToRange(gameState, bestAttacker, targetPosition, bestAttacker.unitClass.attack.range, 1));
+		if (moveTowards.size() == 0) 
+			return PortfolioController.GetActions(gameState, isPlayer1, fallbackBehaviour);
+		else {
+			actions.add(moveTowards.get(0));
+			return actions;
+		}
 	}
 
 }

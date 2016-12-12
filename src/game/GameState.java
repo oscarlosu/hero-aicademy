@@ -1167,6 +1167,7 @@ public class GameState {
 		turn = state.turn;
 		APLeft = state.APLeft;
 		map = state.map;
+		ClearCache();
 		// chainTargets.clear();
 		// chainTargets.addAll(state.chainTargets); // NOT NECESSARY
 
