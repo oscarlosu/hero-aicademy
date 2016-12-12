@@ -34,7 +34,7 @@ public class Experiment {
 	public static boolean saveStats = true;
 	public static boolean stepped = false;
 	
-	public static String folderName = "";
+	public static String folderName = "12-12-2016 - Portfolio - 100 games 4 budget";
 	
 	public static void main(String[] args) {
 		GameState.RANDOMNESS = true;
