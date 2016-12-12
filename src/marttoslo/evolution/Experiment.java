@@ -26,15 +26,15 @@ import pacman.game.util.IO;
 
 public class Experiment {
 	public static int budget = 4000; // 4 sec for AI's
-	public static int gamesToPlay = 10;
+	public static int gamesToPlay = 13;
 	
 	public static boolean useThreads = false;
-	public static boolean enableGfx = true;
-	public static boolean saveToFile = false;
-	public static boolean saveStats = false;
-	public static boolean stepped = true;
+	public static boolean enableGfx = false;
+	public static boolean saveToFile = true;
+	public static boolean saveStats = true;
+	public static boolean stepped = false;
 	
-	public static String folderName = "08-12-2016 - 100 games budget 1";
+	public static String folderName = "";
 	
 	public static void main(String[] args) {
 		GameState.RANDOMNESS = true;
@@ -172,18 +172,17 @@ public class Experiment {
 			results.seed = seed;
 			results.crystalWin = game.state.wasCrystalWin();
 			results.unitWin = results.winnerIndex != 0 && !game.state.wasCrystalWin();
-			// Coevolution stats
-			/*
+			// Coevolution stats			
 			results.co_generations.addAll(((OnlineCoevolutionPortfolio)p2).generations);
-			results.co_championHostFindGen = ((OnlineCoevolution)p2).championHostFindGen;
-			results.co_championParasiteFindGen = ((OnlineCoevolution)p2).championParasiteFindGen;
-			results.co_championHostFitnesses.addAll(((OnlineCoevolution)p2).championHostFitnesses);
-			results.co_championParasiteFitnesses.addAll(((OnlineCoevolution)p2).championParasiteFitnesses);
+			results.co_championHostFindGen = ((OnlineCoevolutionPortfolio)p2).championHostFindGen;
+			results.co_championParasiteFindGen = ((OnlineCoevolutionPortfolio)p2).championParasiteFindGen;
+			results.co_championHostFitnesses.addAll(((OnlineCoevolutionPortfolio)p2).championHostFitnesses);
+			results.co_championParasiteFitnesses.addAll(((OnlineCoevolutionPortfolio)p2).championParasiteFitnesses);
 			// Online Evolution stats
 			results.oe_generations.addAll(((OnlineEvolution)p1).generations);
 			results.oe_championHostFindGen = ((OnlineEvolution)p1).championFindGen;
 			results.oe_championFitnesses.addAll(((OnlineEvolution)p1).championFitnesses);
-			*/
+			
 			return results;
 	}
 }
