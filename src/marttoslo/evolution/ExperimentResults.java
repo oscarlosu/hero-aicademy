@@ -22,25 +22,29 @@ public class ExperimentResults {
 	@Expose
 	public boolean unitWin;
 	
-	// Coevolution stats
+	// Coevolution Portfolio stats
 	@Expose
-	public List<Double> co_generations = new ArrayList<Double>();
+	public List<Double> co_portfolio_generations = new ArrayList<Double>();
 	@Expose
-	public List<Double> co_championHostFindGen = new ArrayList<Double>();
+	public List<Double> co_portfolio_championHostFindGen = new ArrayList<Double>();
 	@Expose
-	public List<Double> co_championHostFitnesses = new ArrayList<Double>();
+	public List<Double> co_portfolio_championHostFitnesses = new ArrayList<Double>();
 	@Expose
-	public List<Double> co_championParasiteFindGen = new ArrayList<Double>();
+	public List<Double> co_portfolio_championParasiteFindGen = new ArrayList<Double>();
 	@Expose
-	public List<Double> co_championParasiteFitnesses = new ArrayList<Double>();
+	public List<Double> co_portfolio_championParasiteFitnesses = new ArrayList<Double>();
 	
 	// Evolution stats
 	@Expose
-	public List<Double> oe_generations = new ArrayList<Double>();
+	public List<Double> co_raw_generations = new ArrayList<Double>();
 	@Expose
-	public List<Double> oe_championHostFindGen = new ArrayList<Double>();
+	public List<Double> co_raw_championHostFindGen = new ArrayList<Double>();
 	@Expose
-	public List<Double> oe_championFitnesses = new ArrayList<Double>();
+	public List<Double> co_raw_championHostFitnesses = new ArrayList<Double>();
+	@Expose
+	public List<Double> co_raw_championParasiteFindGen = new ArrayList<Double>();
+	@Expose
+	public List<Double> co_raw_championParasiteFitnesses = new ArrayList<Double>();
 	
 	
 	public String toString() {

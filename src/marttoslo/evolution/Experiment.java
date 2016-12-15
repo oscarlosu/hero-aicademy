@@ -13,7 +13,7 @@ import com.winterbe.java8.samples.concurrent.ConcurrentUtils;
 
 import ai.AI;
 import ai.evaluation.HeuristicEvaluator;
-import ai.evolution.OnlineEvolution;
+import ai.evaluation.IStateEvaluator;
 import game.Game;
 import game.GameArguments;
 import game.GameState;
@@ -26,10 +26,10 @@ import pacman.game.util.IO;
 
 public class Experiment {
 	public static int budget = 4000; // 4 sec for AI's
-	public static int gamesToPlay = 13;
+	public static int gamesToPlay = 1;
 	
 	public static boolean useThreads = false;
-	public static boolean enableGfx = false;
+	public static boolean enableGfx = true;
 	public static boolean saveToFile = true;
 	public static boolean saveStats = true;
 	public static boolean stepped = false;
@@ -148,11 +148,10 @@ public class Experiment {
 			long seed = (long)(System.currentTimeMillis() * Math.random());
 			
 			// Init players
-			// Online Evolution
-			AI p1 = new OnlineEvolution(true, 100, 0.1, 0.5, budget, new HeuristicEvaluator(false), stepped, saveStats || enableGfx);	
-			((OnlineEvolution)p1).setSeed(seed);
-			// RHCA
-			//100, 30
+			// Online Coevolution RAW
+			AI p1 = new OnlineCoevolution(100, 30, 0.3, budget, new HeuristicEvaluator(false), stepped, saveStats || enableGfx);
+			((OnlineCoevolution)p1).setSeed(seed);
+			// Online Coevolution Portfolio
 			AI p2 = new OnlineCoevolutionPortfolio(100, 30, 0.3, budget, new HeuristicEvaluator(false), stepped, saveStats || enableGfx);
 			((OnlineCoevolutionPortfolio)p2).setSeed(seed);
 			
@@ -172,16 +171,18 @@ public class Experiment {
 			results.seed = seed;
 			results.crystalWin = game.state.wasCrystalWin();
 			results.unitWin = results.winnerIndex != 0 && !game.state.wasCrystalWin();
-			// Coevolution stats			
-			results.co_generations.addAll(((OnlineCoevolutionPortfolio)p2).generations);
-			results.co_championHostFindGen = ((OnlineCoevolutionPortfolio)p2).championHostFindGen;
-			results.co_championParasiteFindGen = ((OnlineCoevolutionPortfolio)p2).championParasiteFindGen;
-			results.co_championHostFitnesses.addAll(((OnlineCoevolutionPortfolio)p2).championHostFitnesses);
-			results.co_championParasiteFitnesses.addAll(((OnlineCoevolutionPortfolio)p2).championParasiteFitnesses);
-			// Online Evolution stats
-			results.oe_generations.addAll(((OnlineEvolution)p1).generations);
-			results.oe_championHostFindGen = ((OnlineEvolution)p1).championFindGen;
-			results.oe_championFitnesses.addAll(((OnlineEvolution)p1).championFitnesses);
+			// Coevolution Raw stats			
+			results.co_raw_generations.addAll(((OnlineCoevolution)p1).generations);
+			results.co_raw_championHostFindGen = ((OnlineCoevolution)p1).championHostFindGen;
+			results.co_raw_championParasiteFindGen = ((OnlineCoevolution)p1).championParasiteFindGen;
+			results.co_raw_championHostFitnesses.addAll(((OnlineCoevolution)p1).championHostFitnesses);
+			results.co_raw_championParasiteFitnesses.addAll(((OnlineCoevolution)p1).championParasiteFitnesses);
+			// Coevolution Portfolio stats
+			results.co_portfolio_generations.addAll(((OnlineCoevolutionPortfolio)p2).generations);
+			results.co_portfolio_championHostFindGen = ((OnlineCoevolutionPortfolio)p2).championHostFindGen;
+			results.co_portfolio_championParasiteFindGen = ((OnlineCoevolutionPortfolio)p2).championParasiteFindGen;
+			results.co_portfolio_championHostFitnesses.addAll(((OnlineCoevolutionPortfolio)p2).championHostFitnesses);
+			results.co_portfolio_championParasiteFitnesses.addAll(((OnlineCoevolutionPortfolio)p2).championParasiteFitnesses);
 			
 			return results;
 	}
