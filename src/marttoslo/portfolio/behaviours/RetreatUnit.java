@@ -41,7 +41,6 @@ public class RetreatUnit extends Behaviour {
 			
 		actions.add(nextAction);
 
-		//System.out.println("EXECUTING: RetreatUnit");
 		return actions;
 	}
 

@@ -34,7 +34,6 @@ public class EquipDefense extends Behaviour {
 		Unit theBest = null;
 		HeuristicEvaluator evaluator = new HeuristicEvaluator(false);
 		for (Card unit : priotiizedListOfUnits) {
-			//Get all units on board
 			ArrayList<Unit> units = new ArrayList<Unit>();
 			units = gameState.GetAllUnitsOfType(isPlayer1, false, unit);
 
